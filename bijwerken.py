@@ -15,6 +15,9 @@ HEADERS = ['Nr.', 'Merk (echte auto)', 'Model / uitvoering', 'Bouwjaar (echte au
 FIELDS = ['nr', 'automerk', 'model', 'bouwjaar', 'merk modelauto', 'modelnr', 'conditie', 'schaal', 'oplage', 'locatie', 'doos', 'vraagprijs zonder doos', 'vraagprijs met doos', 'vraagprijs met doos als nieuw', '2e hands']
 NS = {'m': 'http://schemas.openxmlformats.org/spreadsheetml/2006/main'}
 LOCAL_FILE = 'lokale_modellen.json'
+CODE_DIR = pathlib.Path(__file__).resolve().parent
+DATA_DIR = CODE_DIR / 'data'  # junction naar OneDrive
+TEMPLATE = CODE_DIR / 'inventaris.template.html'
 
 
 def load_local(directory):
@@ -102,7 +105,7 @@ def snapshot(directory):
 
 def render_html(directory, data):
     payload = json.dumps(data, ensure_ascii=False).replace('<', '\\u003c').replace('>', '\\u003e').replace('&', '\\u0026')
-    template = (directory / 'inventaris.template.html').read_text(encoding='utf-8')
+    template = TEMPLATE.read_text(encoding='utf-8')
     if template.count('__INVENTARIS_DATA__') != 1:
         raise ValueError('Template moet precies één gegevensmarkering bevatten.')
     return template.replace('__INVENTARIS_DATA__', payload)
@@ -194,7 +197,9 @@ def parquet_table(rows, data):
     return pa.Table.from_arrays(arrays, names=names).replace_schema_metadata(metadata)
 
 def main(directory=None):
-    directory = pathlib.Path(directory) if directory is not None else pathlib.Path(__file__).resolve().parent
+    directory = pathlib.Path(directory) if directory is not None else DATA_DIR
+    if not directory.is_dir():
+        raise RuntimeError(f'Gegevensmap niet gevonden: {directory}. Maak de koppeling naar OneDrive opnieuw aan (zie LEESMIJ.txt).')
     data = extract(SOURCE, include_raw=True)
     table = parquet_table(data.pop('_raw_rows'), data)
     import pyarrow.parquet as pq

@@ -1,6 +1,17 @@
 SCHAALMODELLEN - LOKALE INVENTARIS
 
-Om alleen te bekijken kun je index.html met je browser openen.
+WAAR STAAT WAT
+De code staat in C:\dev\schaalmodellen (Git, GitHub geert1981/schaalmodellen).
+De gegevens staan in OneDrive en worden zo automatisch bewaard:
+  C:\Users\ntm556\OneDrive - De Stroomlijn\Geert Kril\Schaalmodellen\data
+  (index.html, aanvullingen.json, lokale_modellen.json, inventaris.parquet, fotos)
+C:\dev\schaalmodellen\data is een koppeling (junction) naar die OneDrive-map.
+Het pad staat ook in .data-root. Ontbreekt de koppeling (bv. op een andere
+laptop), maak ze dan opnieuw aan in een opdrachtprompt:
+  mklink /J "C:\dev\schaalmodellen\data" "C:\Users\ntm556\OneDrive - De Stroomlijn\Geert Kril\Schaalmodellen\data"
+Zorg dat OneDrive de map "altijd op dit apparaat" bewaart.
+
+Om alleen te bekijken kun je data\index.html met je browser openen.
 Om toe te voegen of te bewerken: dubbelklik op Start inventaris.cmd.
 De lokale app opent automatisch in je browser. Internet is niet nodig.
 Laat het appvenster open tijdens het werken; stoppen kan met Ctrl+C.
@@ -70,7 +81,7 @@ Excel pas opnieuw wanneer je daarvoor kiest.
 
 De pagina schrijft niets terug naar Excel. Paginamodellen staan apart in
 lokale_modellen.json, samen met de pagina-aanpassingen en de prullenbak.
-Nieuwe foto's worden in fotos/web bewaard, in de gekozen volgorde.
+Nieuwe foto’s worden in data/fotos/web bewaard, in de gekozen volgorde.
 Bewaar deze bestanden en de bestaande aanvullingen.json en fotos samen.
 Ook wanneer Excel vergrendeld is, kun je paginamodellen opslaan.
 Als de identiteit van een Excel-model wijzigt, worden de daarvoor opgeslagen
@@ -85,7 +96,7 @@ fotobestand blijft bewaard, zodat oudere verwijzingen niet worden beschadigd.
 NA WIJZIGINGEN IN EXCEL
 1. Sla Inventaris.xlsx op en sluit Excel.
 2. Dubbelklik op Bijwerken.cmd.
-3. Vernieuw index.html in de browser.
+3. Vernieuw data\index.html in de browser.
 
 Het programma gebruikt de Python-versie van Codex, of de Python-launcher
 indien die apart is geinstalleerd. Voor Parquet is pyarrow nodig.
@@ -99,7 +110,7 @@ Werkblad: Inventaris. Dit bestand wordt uitsluitend gelezen.
 De pagina is een momentopname van de opgeslagen gegevens.
 
 PARQUET-EXPORT
-Bijwerken.cmd maakt ook inventaris.parquet in deze map.
+Bijwerken.cmd maakt ook inventaris.parquet in de map data.
 Dit bestand bevat alle oorspronkelijke kolommen van werkblad Inventaris,
 inclusief Opmerking, en alle rijen met celwaarden (ook vooraf ingevulde rijen).
 Lege cellen blijven null; ze worden niet vervangen door Onbekend.

@@ -37,7 +37,7 @@ class InventoryTests(unittest.TestCase):
         self.directory = Path(self.temp.name)
         self.source = self.directory / 'Inventaris.xlsx'
         workbook(self.source)
-        (self.directory / 'inventaris.template.html').write_text((server.DIRECTORY / 'inventaris.template.html').read_text(encoding='utf-8'), encoding='utf-8')
+        (self.directory / 'inventaris.template.html').write_text((server.CODE_DIR / 'inventaris.template.html').read_text(encoding='utf-8'), encoding='utf-8')
         self.source_patch = patch.object(b, 'SOURCE', self.source)
         self.source_patch.start()
         self.addCleanup(self.source_patch.stop)

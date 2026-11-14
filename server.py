@@ -18,7 +18,9 @@ import webbrowser
 import bijwerken
 import miniaturen
 
-DIRECTORY = Path(__file__).resolve().parent
+CODE_DIR = Path(__file__).resolve().parent
+# Gegevens (index.html, json, parquet, fotos) staan in data/: een junction naar OneDrive.
+DIRECTORY = CODE_DIR / 'data'
 MAX_BODY = 80 * 1024 * 1024
 LOCK = threading.RLock()
 THUMB_LOCK = threading.Lock()
@@ -346,6 +348,8 @@ def main():
     parser.add_argument('--port', type=int, default=None)
     parser.add_argument('--no-browser', action='store_true')
     args = parser.parse_args()
+    if not DIRECTORY.is_dir():
+        raise SystemExit(f'Gegevensmap niet gevonden: {DIRECTORY}\nMaak de koppeling naar OneDrive opnieuw aan (zie LEESMIJ.txt).')
     rebuild(DIRECTORY)
     # Ontbrekende miniaturen op de achtergrond aanmaken; de pagina toont intussen de originelen.
     threading.Thread(target=make_thumbnails, args=(DIRECTORY,), daemon=True).start()

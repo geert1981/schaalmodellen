@@ -1,14 +1,19 @@
-# Persoonlijke inventarisgegevens (blijven lokaal / via OneDrive, niet in Git)
+# Persoonlijke inventarisgegevens: data/ is een junction naar OneDrive
+# (index.html, aanvullingen.json, lokale_modellen.json, inventaris.parquet, fotos/)
+/data/
+# Lokaal doel van de data/-junction (persoonlijk pad, per laptop)
+/.data-root
+
+# Oude locatie van de gegevens (voor de verhuis naar data/)
 /index.html
 /aanvullingen.json
 /lokale_modellen.json
 /inventaris.parquet
 /fotos/
-
-# Oude handmatige backup-mappen (vervangen door Git-geschiedenis)
 /backup-*/
 
 # Python / tooling
 __pycache__/
 *.pyc
 *.log
+*.tmp

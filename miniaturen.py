@@ -73,7 +73,7 @@ def ensure_for_data(directory, data):
 
 def main(directory=None):
     import bijwerken
-    directory = pathlib.Path(directory or pathlib.Path(__file__).resolve().parent)
+    directory = pathlib.Path(directory) if directory else bijwerken.DATA_DIR
     try:
         import PIL  # noqa: F401
     except ImportError:
