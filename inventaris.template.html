@@ -239,6 +239,12 @@ for(const id of ['priceMin','priceMax'])document.getElementById(id).addEventList
 document.getElementById('reset').addEventListener('click',()=>{document.getElementById('search').value='';document.getElementById('mediaFilter').value='';document.getElementById('priceMin').value='';document.getElementById('priceMax').value='';filters.forEach(f=>f.select.value='');sortColumn=0;sortDirection=1;render();});
 document.getElementById('mediaFilter').addEventListener('change',render);
 let activeAd='',activeRecord=null;
+// Zoekertjestekst: **tekst** wordt vet getoond. Kopiëren geeft platte tekst zonder sterretjes (voor 2dehands)
+// en daarnaast opgemaakte tekst met vet voor programma's die dat ondersteunen.
+const BOLD=/\*\*(?=\S)([\s\S]*?\S)\*\*/g;
+function adNodes(text){const nodes=[];let last=0;for(const m of text.matchAll(BOLD)){if(m.index>last)nodes.push(document.createTextNode(text.slice(last,m.index)));const b=document.createElement('strong');b.textContent=m[1];nodes.push(b);last=m.index+m[0].length;}if(last<text.length)nodes.push(document.createTextNode(text.slice(last)));return nodes;}
+function adPlain(text){return text.replace(BOLD,'$1');}
+function adHtml(text){const box=document.createElement('div');box.append(...adNodes(text));return '<div style="white-space:pre-wrap">'+box.innerHTML+'</div>';}
 function openDetails(record){
  activeRecord=record;
  document.getElementById('recordOrigin').textContent=record.origin==='local'?'Toegevoegd via de pagina.':record.locallyEdited?'Uit Excel, met aanpassingen via de pagina.':'Inventarisgegevens uit Excel.';
@@ -253,7 +259,7 @@ function openDetails(record){
  const gallery=document.getElementById('gallery');gallery.replaceChildren();
  (extra.photos||[]).forEach((photo,index)=>{const a=document.createElement('a');a.href=photo;a.target='_blank';a.rel='noopener';const img=document.createElement('img');img.src=photo;img.alt=record.values[1]+' '+record.values[2]+' · foto '+(index+1);img.loading='lazy';a.append(img);gallery.append(a);});
  const notice=document.getElementById('mediaNotice');notice.textContent=extra.photos?.length?'Klik op een foto om het origineel te openen.':'Nog geen foto’s beschikbaar voor dit model.';notice.className=extra.photos?.length?'provenance':'missing';
- document.getElementById('adText').textContent=activeAd||'Nog geen zoekertjestekst beschikbaar.';
+ const adText=document.getElementById('adText');if(activeAd)adText.replaceChildren(...adNodes(activeAd));else adText.textContent='Nog geen zoekertjestekst beschikbaar.';
  document.getElementById('copyAd').hidden=!activeAd;document.getElementById('copyStatus').textContent='';
  const quick=document.getElementById('quickStatus'),quickMessage=document.getElementById('quickStatusMessage');
  fillChoices(quick,14,record.values[14]);quick.value=isUnknown(record.values[14])?'':String(record.values[14]);quick.disabled=!appConfig;
@@ -270,7 +276,7 @@ document.getElementById('quickStatus').addEventListener('change',async event=>{
  catch(error){message.textContent=error.message;message.className='formerror';quick.value=isUnknown(record.values[14])?'':String(record.values[14]);quick.disabled=false;}
 });
 document.getElementById('closeDialog').addEventListener('click',()=>document.getElementById('modelDialog').close());
-document.getElementById('copyAd').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(activeAd);document.getElementById('copyStatus').textContent='Zoekertje gekopieerd.';}catch{const range=document.createRange();range.selectNodeContents(document.getElementById('adText'));const selection=window.getSelection();selection.removeAllRanges();selection.addRange(range);document.getElementById('copyStatus').textContent='Tekst geselecteerd. Druk op Ctrl+C om te kopiëren.';}});
+document.getElementById('copyAd').addEventListener('click',async()=>{try{const plain=adPlain(activeAd);if(window.ClipboardItem&&navigator.clipboard.write){try{await navigator.clipboard.write([new ClipboardItem({'text/plain':new Blob([plain],{type:'text/plain'}),'text/html':new Blob([adHtml(activeAd)],{type:'text/html'})})]);}catch{await navigator.clipboard.writeText(plain);}}else await navigator.clipboard.writeText(plain);document.getElementById('copyStatus').textContent='Zoekertje gekopieerd.';}catch{const range=document.createRange();range.selectNodeContents(document.getElementById('adText'));const selection=window.getSelection();selection.removeAllRanges();selection.addRange(range);document.getElementById('copyStatus').textContent='Tekst geselecteerd. Druk op Ctrl+C om te kopiëren.';}});
 if(data.unmatched?.length){document.getElementById('unmatchedSection').hidden=false;document.getElementById('unmatchedTitle').textContent=data.unmatched.length+' chats nog niet eenduidig gekoppeld';data.unmatched.forEach(chat=>{const li=document.createElement('li');const a=document.createElement('a');a.href='https://chatgpt.com/c/'+chat.id;a.target='_blank';a.rel='noopener';a.textContent=chat.title;li.append(a);document.getElementById('unmatchedList').append(li);});}
 document.getElementById('total').textContent=data.records.length;
 document.getElementById('brands').textContent=new Set(data.records.map(r=>r.values[1]).filter(v=>!isUnknown(v))).size;
