@@ -221,6 +221,11 @@ def main(directory=None):
     finally:
         parquet_tmp.unlink(missing_ok=True)
         temporary.unlink(missing_ok=True)
+    try:
+        import miniaturen
+        miniaturen.ensure_for_data(directory, data)
+    except Exception as exc:
+        print(f'Miniaturen bijwerken mislukt: {exc}', file=sys.stderr)
     print(f'Bijgewerkt: {len(data["records"])} modellen in HTML; {table.num_rows} Excel-rijen en {table.num_columns} kolommen in Parquet. Excel ongewijzigd.\n{destination}\n{parquet_path}')
 
 if __name__ == '__main__':

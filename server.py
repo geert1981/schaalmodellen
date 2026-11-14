@@ -9,16 +9,19 @@ import math
 from pathlib import Path
 import secrets
 import socket
+import sys
 import threading
 from urllib.parse import unquote, urlsplit
 import uuid
 import webbrowser
 
 import bijwerken
+import miniaturen
 
 DIRECTORY = Path(__file__).resolve().parent
 MAX_BODY = 80 * 1024 * 1024
 LOCK = threading.RLock()
+THUMB_LOCK = threading.Lock()
 DEFAULT_PORT = 18765
 
 
@@ -287,6 +290,7 @@ class Handler(BaseHTTPRequestHandler):
                     if not isinstance(metadata, dict):
                         raise ValueError('Ongeldige modelgegevens.')
                     key = save_model(self.server.directory, metadata, parts)
+                    make_thumbnails(self.server.directory)
                     self.send_json(200, {'ok': True, 'id': key})
                 else:
                     self.send_json(404, {'error': 'Niet gevonden.'})
@@ -308,6 +312,15 @@ class LocalHTTPServer(ThreadingHTTPServer):
         if hasattr(socket, 'SO_EXCLUSIVEADDRUSE'):
             self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_EXCLUSIVEADDRUSE, 1)
         super().server_bind()
+
+
+def make_thumbnails(directory):
+    """Miniaturen voor het foto-overzicht bijwerken; een fout mag opslaan niet hinderen."""
+    try:
+        with THUMB_LOCK:
+            miniaturen.ensure_for_data(directory, bijwerken.snapshot(directory))
+    except Exception as exc:
+        print(f'Miniaturen bijwerken mislukt: {exc}', file=sys.stderr, flush=True)
 
 
 def create_server(directory=DIRECTORY, port=DEFAULT_PORT):
@@ -334,6 +347,8 @@ def main():
     parser.add_argument('--no-browser', action='store_true')
     args = parser.parse_args()
     rebuild(DIRECTORY)
+    # Ontbrekende miniaturen op de achtergrond aanmaken; de pagina toont intussen de originelen.
+    threading.Thread(target=make_thumbnails, args=(DIRECTORY,), daemon=True).start()
     try:
         server = start_server(port=args.port)
     except OSError as exc:

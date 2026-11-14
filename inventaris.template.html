@@ -140,11 +140,13 @@ for(const [index,label] of [[1,'Automerk'],[4,'Fabrikant'],[6,'Conditie'],[7,'Sc
 }
 data.headers.forEach((name,index)=>{const th=document.createElement('th');th.scope='col';const button=document.createElement('button');button.type='button';button.textContent=name;button.addEventListener('click',()=>{sortDirection=sortColumn===index?-sortDirection:1;sortColumn=index;render();});th.append(button);th.hidden=hiddenColumns.has(index);document.getElementById('head').append(th);});
 {const shown=data.headers.length-hiddenColumns.size;document.getElementById('columnCount').textContent=hiddenColumns.size?shown+' kolommen (lege kolom Doos verborgen)':'Alle '+shown+' kolommen';document.querySelector('.tablewrap').setAttribute('aria-label','Inventaris met '+shown+' kolommen');}
+// Miniatuur voor het overzicht (zie miniaturen.py); ontbreekt die, dan valt de kaart terug op het origineel.
+function thumbPath(photo){return typeof photo==='string'&&photo.startsWith('fotos/')&&!photo.startsWith('fotos/_mini/')?'fotos/_mini/'+photo.slice(6)+'.jpg':null;}
 function modelCard(record){
  const v=record.values,photos=record.extra?.photos||[];
  const card=document.createElement('article');card.className='modelcard';
  const photo=document.createElement('button');photo.type='button';photo.className='cardphoto';photo.setAttribute('aria-label','Bekijk '+v[1]+' '+v[2]);photo.addEventListener('click',()=>openDetails(record));
- if(photos.length){const img=document.createElement('img');img.src=photos[0];img.alt=v[1]+' '+v[2];img.loading='lazy';photo.append(img);const count=document.createElement('span');count.className='photocount';count.textContent=photos.length+" foto's";photo.append(count);}
+ if(photos.length){const img=document.createElement('img');const mini=thumbPath(photos[0]);img.src=mini||photos[0];if(mini)img.addEventListener('error',()=>{img.src=photos[0];},{once:true});img.alt=v[1]+' '+v[2];img.loading='lazy';photo.append(img);const count=document.createElement('span');count.className='photocount';count.textContent=photos.length+" foto's";photo.append(count);}
  else {const placeholder=document.createElement('span');placeholder.className='nophoto';placeholder.innerHTML='<svg viewBox="0 0 120 50" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 34V25l17-5 14-13h35l17 15 16 4 3 8H10Z"/><path d="M34 20h49L72 11H45Z"/><circle cx="30" cy="35" r="8" fill="var(--paper)"/><circle cx="92" cy="35" r="8" fill="var(--paper)"/></svg>Foto volgt';photo.append(placeholder);}
  const body=document.createElement('div');body.className='cardbody';
  const meta=document.createElement('div');meta.className='cardmeta';const nr=document.createElement('span');nr.textContent='Nr. '+v[0]+(record.origin==='local'?' · Pagina':' · Excel');meta.append(nr,statusBadge(v[14]));

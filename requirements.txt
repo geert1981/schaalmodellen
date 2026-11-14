@@ -1,1 +1,2 @@
 pyarrow>=18
+Pillow>=10

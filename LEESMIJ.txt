@@ -28,6 +28,11 @@ locatienummer, met aantal en waarde te koop per locatie. Zoeken, filters en
 sortering gelden ook hier. Met Afdrukken krijg je een lijst per locatie.
 Onder Filters kun je een prijsgrens (vraagprijs zonder doos) instellen,
 bijvoorbeeld vanaf 20 tot en met 50 euro. Modellen zonder prijs vallen dan weg.
+Het foto-overzicht gebruikt kleine voorbeeldfoto's (miniaturen) in fotos/_mini.
+Bekijk model en een klik op een foto tonen altijd de originele grote foto's.
+Miniaturen worden automatisch gemaakt bij het starten van de app, na opslaan
+en bij Bijwerken.cmd (vereist Pillow). Ontbreekt een miniatuur, dan toont de
+kaart gewoon het origineel. Handmatig alles aanmaken: python miniaturen.py
 Zoekterm, filters, sortering en weergave worden in de browser onthouden.
 Wis filters zet zoeken, filters en sortering terug.
 Een kolom die bij geen enkel model is ingevuld (nu Doos) wordt in tabel,
@@ -85,7 +90,7 @@ NA WIJZIGINGEN IN EXCEL
 Het programma gebruikt de Python-versie van Codex, of de Python-launcher
 indien die apart is geinstalleerd. Voor Parquet is pyarrow nodig.
 Eenmalig installeren: python -m pip install -r requirements.txt
-Bewaar bijwerken.py, server.py, inventaris.template.html en de cmd-bestanden samen.
+Bewaar bijwerken.py, server.py, miniaturen.py, inventaris.template.html en de cmd-bestanden samen.
 Bij een fout tijdens het inlezen blijft de vorige pagina behouden.
 
 BRON
