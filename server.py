@@ -1,6 +1,7 @@
 """Lokale inventarisapp: Excel blijft leesbron, browsertoevoegingen staan apart."""
 import argparse
 import copy
+import datetime
 from email import policy
 from email.parser import BytesParser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -191,10 +192,45 @@ def change_model_state(directory, metadata, *, restore=False):
             raise ValueError('Het model is intussen gewijzigd of verwijderd. Vernieuw de pagina.')
         if record.get('origin') == 'local':
             local['models'] = [r for r in local['models'] if str(r['values'][0]) != key]
+            record.pop('appointment', None)
             local.setdefault('archived_models', []).append(record)
         else:
             baseline = record.get('originalValues', record['values'])
             local.setdefault('hidden_excel', {})[key] = {'identity': baseline[1:6], 'title': str(record['values'][1]) + ' ' + str(record['values'][2])}
+    merged = bijwerken.merge_local(data, copy.deepcopy(local))
+    html = bijwerken.render_html(directory, merged)
+    atomic_write(directory / bijwerken.LOCAL_FILE, json.dumps(local, ensure_ascii=False, indent=2) + '\n')
+    atomic_write(directory / 'index.html', html)
+    return key
+
+
+def save_appointment(directory, metadata):
+    """Bewaar of verwijder de afspraak met een koper voor één model."""
+    key = text(metadata.get('id', ''), 100)
+    local = bijwerken.load_local(directory)
+    data = bijwerken.merge_local(bijwerken.snapshot(directory), copy.deepcopy(local))
+    record = next((r for r in data['records'] if str(r['values'][0]) == key), None)
+    if not record or metadata.get('identity') != record['values'][1:6]:
+        raise ValueError('Het model is intussen gewijzigd of verwijderd. Vernieuw de pagina.')
+    appointments = local.setdefault('appointments', {})
+    item = metadata.get('appointment')
+    if item is None:
+        appointments.pop(key, None)
+    else:
+        if not isinstance(item, dict):
+            raise ValueError('Ongeldige afspraak.')
+        start = text(item.get('start', ''), 20)
+        try:
+            datetime.datetime.strptime(start, '%Y-%m-%dT%H:%M')
+        except ValueError as exc:
+            raise ValueError('Kies een geldige datum en tijd.') from exc
+        duration = item.get('duration', 30)
+        if not isinstance(duration, int) or isinstance(duration, bool) or not 5 <= duration <= 600:
+            raise ValueError('Kies een duur tussen 5 minuten en 10 uur.')
+        identity = None if record.get('origin') == 'local' else record.get('originalValues', record['values'])[1:6]
+        appointments[key] = {'identity': identity, 'start': start, 'duration': duration, 'buyer': text(item.get('buyer', ''), 500), 'note': text(item.get('note', ''), 2000)}
+    if not appointments:
+        local.pop('appointments')
     merged = bijwerken.merge_local(data, copy.deepcopy(local))
     html = bijwerken.render_html(directory, merged)
     atomic_write(directory / bijwerken.LOCAL_FILE, json.dumps(local, ensure_ascii=False, indent=2) + '\n')
@@ -274,6 +310,12 @@ class Handler(BaseHTTPRequestHandler):
                     if not isinstance(metadata, dict):
                         raise ValueError('Ongeldige modelgegevens.')
                     key = change_model_state(self.server.directory, metadata, restore=route.endswith('/restore'))
+                    self.send_json(200, {'ok': True, 'id': key})
+                elif route == '/api/appointments':
+                    metadata = json.loads(raw.decode('utf-8'))
+                    if not isinstance(metadata, dict):
+                        raise ValueError('Ongeldige afspraak.')
+                    key = save_appointment(self.server.directory, metadata)
                     self.send_json(200, {'ok': True, 'id': key})
                 elif route == '/api/models':
                     content_type = self.headers.get('Content-Type', '')

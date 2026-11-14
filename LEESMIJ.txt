@@ -44,6 +44,19 @@ Bekijk model en een klik op een foto tonen altijd de originele grote foto's.
 Miniaturen worden automatisch gemaakt bij het starten van de app, na opslaan
 en bij Bijwerken.cmd (vereist Pillow). Ontbreekt een miniatuur, dan toont de
 kaart gewoon het origineel. Handmatig alles aanmaken: python miniaturen.py
+
+AFSPRAKEN MET KOPERS EN KALENDER
+In Bekijk model > Afspraak met koper plan je wanneer een koper langskomt:
+datum en tijd, duur, koper (naam/telefoon) en een notitie. Eén afspraak per
+model; opnieuw opslaan vervangt ze. Afspraken staan in lokale_modellen.json.
+Het tabblad Kalender toont een maandoverzicht en de lijst met komende
+afspraken (los van zoeken en filters). Komende afspraken staan ook op de kaart.
+Exporteer .ics: één afspraak als agendabestand (Outlook, Google, Apple),
+met een herinnering een uur vooraf. Alle afspraken exporteren maakt één
+.ics-bestand met alles. Toevoegen aan Google Agenda opent Google Agenda met
+de afspraak ingevuld (internet nodig). Een automatische koppeling met Google
+Agenda is niet mogelijk: de app draait alleen lokaal en Google kan er niet bij.
+Een gewijzigde afspraak opnieuw importeren werkt de bestaande bij (zelfde UID).
 Zoekterm, filters, sortering en weergave worden in de browser onthouden.
 Wis filters zet zoeken, filters en sortering terug.
 Een kolom die bij geen enkel model is ingevuld (nu Doos) wordt in tabel,

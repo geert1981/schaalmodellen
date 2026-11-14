@@ -24,6 +24,21 @@ dialog{border:1px solid #bdcdbf;border-radius:12px;padding:0;width:min(1080px,95
 @media(max-width:700px){.formgrid{grid-template-columns:repeat(2,minmax(0,1fr))}.formactions{flex-wrap:wrap}}
 @media(max-width:420px){.formgrid{grid-template-columns:1fr}}
 @media print{.managebar,#localWarnings{display:none!important}}
+/* Kalender en afspraken */
+.calbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px}.calnav{display:flex;align-items:center;gap:8px}.calnav h3{margin:0 8px;min-width:170px;text-align:center;font:500 22px Georgia,serif;text-transform:capitalize}
+.calgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.calhead{background:#e9eee5;padding:8px;font-size:12px;font-weight:600;color:var(--muted);text-align:center}
+.calday{background:#fff;min-height:100px;padding:6px;min-width:0}.calday.other{background:#f6f7f3;color:#9aa49c}.calday.today .daynum{background:var(--green);color:#fff}
+.daynum{display:inline-flex;width:24px;height:24px;align-items:center;justify-content:center;border-radius:50%;font-size:12px;font-weight:600}
+.calevent{display:block;width:100%;margin-top:4px;padding:3px 6px;border:0;border-radius:4px;background:#e3f0df;color:#24502f;font-size:11px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.calevent.past{background:#ecebe7;color:#696a64}
+.upcoming{margin-top:24px}.upcoming h3{font:500 20px Georgia,serif;margin:0 0 10px}.upcoming details{margin-top:14px}.upcoming summary{font-size:13px;font-weight:600;color:var(--green)}
+.apptrow{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:12px 14px;background:#fff;border:1px solid var(--line);border-radius:8px;margin-top:8px}.apptwhen{font-weight:600;min-width:200px}.apptmeta{flex:1;min-width:160px;color:var(--muted);font-size:12px;white-space:pre-line}.apptrow .secondarybutton{padding:6px 10px;font-size:12px}
+.modelbutton{border:0;background:none;padding:0;text-align:left;font-weight:600;color:var(--green);text-decoration:underline;text-underline-offset:2px}
+.apptbox{border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin:0 0 20px}.apptbox h3{margin:0 0 10px}.apptgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.appttools{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:12px}.appttools span{font-size:12px}
+a.secondarybutton{display:inline-block;text-decoration:none;color:var(--ink)}
+.cardappt{display:flex;align-items:center;gap:5px;margin:4px 0 0;font-size:12px;font-weight:600;color:#89651d}.cardappt svg{width:14px;height:14px;flex-shrink:0}
+@media(max-width:700px){.apptgrid{grid-template-columns:1fr 1fr}.calday{min-height:64px;padding:3px}.calevent{font-size:10px;padding:2px 3px}.calnav h3{min-width:0;font-size:18px}.apptwhen{min-width:0}}
+[data-theme="dark"] .calhead{background:#22302b}[data-theme="dark"] .calday,[data-theme="dark"] .apptrow{background:#1a2420}[data-theme="dark"] .calday.other{background:#151d1a;color:#5f6b65}[data-theme="dark"] .calevent{background:#1f3d2a;color:#9bd5a5}[data-theme="dark"] .calevent.past{background:#2c2c2a;color:#a9a9a2}[data-theme="dark"] .cardappt{color:#e2c27a}
 .pricefilter{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;max-width:420px;margin-top:12px}
 .locationtools{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}.locationtools .tablehint{margin:0}
 .locationgroup{background:#fff;border:1px solid var(--line);border-radius:8px;margin-bottom:16px;overflow:hidden}.locationgroup h3{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:0;padding:12px 14px;font:600 17px "Segoe UI",sans-serif;color:var(--green);border-bottom:1px solid var(--line)}.locationgroup h3 span{font-size:12px;font-weight:400;color:var(--muted)}
@@ -69,14 +84,15 @@ dialog{border:1px solid #bdcdbf;border-radius:12px;padding:0;width:min(1080px,95
 <div class="managebar"><button id="addModel" type="button" class="primarybutton">+ Model toevoegen</button><button id="openTrash" type="button" class="secondarybutton">Prullenbak</button><button id="refreshExcel" type="button" class="secondarybutton" hidden>Excel opnieuw inlezen</button><p id="appStatus" role="status" aria-live="polite">Voor toevoegen en bewerken: open Start inventaris.cmd.</p></div>
 <div id="localWarnings" hidden role="status"></div>
 <section class="controls" aria-label="Zoeken en filteren"><div class="searchrow"><label>Zoeken in alle gegevens<input id="search" type="search" placeholder="Bijvoorbeeld Ford, Kyosho, 1:18 of artikelnummer…" autocomplete="off"></label><button id="reset" type="button">Wis filters</button></div><details class="filterdetails"><summary>Filters <span id="filterCount"></span></summary><div class="filters" id="filters"></div><label class="mediafilter">Foto's en zoekertjes<select id="mediaFilter"><option value="">Alle registraties</option><option value="photos">Met foto's</option><option value="ad">Met zoekertjestekst</option><option value="both">Met foto's en zoekertjestekst</option><option value="none">Zonder foto’s of tekst</option></select></label><div class="pricefilter"><label>Prijs zonder doos vanaf (€)<input id="priceMin" type="number" min="0" step="any" inputmode="decimal" placeholder="bv. 20"></label><label>tot en met (€)<input id="priceMax" type="number" min="0" step="any" inputmode="decimal" placeholder="bv. 50"></label></div></details></section>
-<div class="tablebar"><div class="resultgroup"><h2>De collectie</h2><strong id="result" role="status" aria-live="polite"></strong></div><div class="viewtools"><label>Sorteren op<select id="sortSelect" aria-label="Sorteren op"></select></label><button id="exportCsv" type="button" class="secondarybutton" title="Exporteer de getoonde modellen (zoeken, filters en sortering) als CSV">Exporteer CSV</button><div class="viewtoggle" role="group" aria-label="Weergave"><button id="cardsViewButton" type="button" aria-pressed="true" aria-controls="cards">Foto-overzicht</button><button id="tableViewButton" type="button" aria-pressed="false" aria-controls="tableView">Tabel</button><button id="locationsViewButton" type="button" aria-pressed="false" aria-controls="locationView">Per locatie</button></div></div></div>
+<div class="tablebar"><div class="resultgroup"><h2>De collectie</h2><strong id="result" role="status" aria-live="polite"></strong></div><div class="viewtools"><label>Sorteren op<select id="sortSelect" aria-label="Sorteren op"></select></label><button id="exportCsv" type="button" class="secondarybutton" title="Exporteer de getoonde modellen (zoeken, filters en sortering) als CSV">Exporteer CSV</button><div class="viewtoggle" role="group" aria-label="Weergave"><button id="cardsViewButton" type="button" aria-pressed="true" aria-controls="cards">Foto-overzicht</button><button id="tableViewButton" type="button" aria-pressed="false" aria-controls="tableView">Tabel</button><button id="locationsViewButton" type="button" aria-pressed="false" aria-controls="locationView">Per locatie</button><button id="calendarViewButton" type="button" aria-pressed="false" aria-controls="calendarView">Kalender</button></div></div></div>
+<div id="calendarView" hidden><div class="calbar"><div class="calnav"><button id="calPrev" type="button" class="secondarybutton" aria-label="Vorige maand">‹</button><h3 id="calTitle" aria-live="polite"></h3><button id="calNext" type="button" class="secondarybutton" aria-label="Volgende maand">›</button><button id="calToday" type="button" class="secondarybutton">Vandaag</button></div><button id="exportAllIcs" type="button" class="secondarybutton">Alle afspraken exporteren (.ics)</button></div><p class="tablehint">Afspraken met kopers · de kalender toont alle afspraken, los van zoeken en filters · klik op een afspraak om het model te openen</p><div class="calgrid" id="calGrid"></div><section class="upcoming"><h3>Komende afspraken</h3><div id="upcomingList"></div><details id="pastAppointments" hidden><summary></summary><div id="pastList"></div></details></section></div>
 <div id="locationView" hidden><div class="locationtools"><p class="tablehint">Gegroepeerd per locatie · zoeken, filters en sortering gelden ook hier</p><button id="printLocations" type="button" class="secondarybutton">Afdrukken</button></div><div id="locationGroups"></div></div>
 <div id="cards" class="cards" aria-label="Modellen met foto"></div>
 <div id="tableView" hidden><p class="tablehint"><span id="columnCount">Alle 15 kolommen</span> · klik op een kolomtitel om te sorteren · schuif horizontaal voor meer gegevens</p><div class="tablewrap" tabindex="0" role="region" aria-label="Inventaris met 15 kolommen"><table><caption style="position:absolute;clip-path:inset(50%);width:1px;height:1px;overflow:hidden">Inventaris van autoschaalmodellen</caption><thead><tr id="head"></tr></thead><tbody id="rows"></tbody></table></div></div>
 <div id="empty" hidden>Geen modellen gevonden. Pas de zoekterm of filters aan.</div>
 <footer><div id="updated"></div><div>Dit is een momentopname. Lege velden worden als ‘Onbekend’ getoond. Opmerkingen staan bij Conditie.</div><details><summary>Bron en bijwerken</summary><p id="source"></p><p>Na wijzigingen in Excel: sla Excel op, sluit het bestand en dubbelklik op <strong>Bijwerken.cmd</strong> in deze map. Vernieuw daarna deze pagina. Excel wordt uitsluitend gelezen. De pagina werkt offline en deelt geen gegevens.</p><p>Rijen met alleen een vooraf ingevuld nummer en schaal tellen niet als modellen.</p></details></footer>
 <details id="unmatchedSection" hidden><summary id="unmatchedTitle"></summary><p>Deze chats zijn niet automatisch aan één inventarisregel gekoppeld. Open de bronchat om de uitvoering te controleren.</p><ul class="unmatchedlist" id="unmatchedList"></ul></details>
-<dialog id="modelDialog" aria-labelledby="dialogTitle"><div class="dialogheader"><h2 id="dialogTitle"></h2><button type="button" id="closeDialog" aria-label="Detailvenster sluiten">Sluiten ×</button></div><div class="dialogbody"><div class="managebar"><button id="editModel" type="button" class="secondarybutton">Model bewerken</button><button id="deleteModel" type="button" class="dangerbutton">Model verwijderen</button><p id="recordOrigin"></p></div><div class="quickstatus"><label>Status zoekertje<select id="quickStatus"></select></label><span id="quickStatusMessage" role="status" aria-live="polite"></span></div><h3>Inventarisgegevens</h3><dl id="detailFacts" class="detailfacts"></dl><p class="provenance" id="chatSource"></p><div id="mediaNotice"></div><div class="gallery" id="gallery"></div><h3>Tekst voor het zoekertje</h3><p class="provenance">Controleer de vraagprijs en conditie voor publicatie; de tekst kan afwijken van de actuele inventaris.</p><div class="adtools"><button type="button" id="copyAd">Kopieer zoekertje</button><span id="copyStatus" role="status" aria-live="polite"></span></div><div class="adtext" id="adText" tabindex="0"></div></div></dialog>
+<dialog id="modelDialog" aria-labelledby="dialogTitle"><div class="dialogheader"><h2 id="dialogTitle"></h2><button type="button" id="closeDialog" aria-label="Detailvenster sluiten">Sluiten ×</button></div><div class="dialogbody"><div class="managebar"><button id="editModel" type="button" class="secondarybutton">Model bewerken</button><button id="deleteModel" type="button" class="dangerbutton">Model verwijderen</button><p id="recordOrigin"></p></div><div class="quickstatus"><label>Status zoekertje<select id="quickStatus"></select></label><span id="quickStatusMessage" role="status" aria-live="polite"></span></div><section class="apptbox" aria-labelledby="apptTitle"><h3 id="apptTitle">Afspraak met koper</h3><div class="apptgrid"><label>Datum en tijd<input id="apptStart" type="datetime-local"></label><label>Duur<select id="apptDuration"><option value="15">15 min</option><option value="30">30 min</option><option value="45">45 min</option><option value="60">1 uur</option><option value="90">1,5 uur</option><option value="120">2 uur</option></select></label><label>Koper<input id="apptBuyer" type="text" maxlength="500" placeholder="Naam, telefoon…"></label><label>Notitie<input id="apptNote" type="text" maxlength="2000" placeholder="bv. betaalt contant"></label></div><div class="appttools"><button id="apptSave" type="button" class="primarybutton">Afspraak opslaan</button><button id="apptDelete" type="button" class="dangerbutton">Afspraak verwijderen</button><button id="apptIcs" type="button" class="secondarybutton">Exporteer .ics</button><a id="apptGoogle" class="secondarybutton" target="_blank" rel="noopener">Toevoegen aan Google Agenda</a><span id="apptStatus" role="status" aria-live="polite"></span></div></section><h3>Inventarisgegevens</h3><dl id="detailFacts" class="detailfacts"></dl><p class="provenance" id="chatSource"></p><div id="mediaNotice"></div><div class="gallery" id="gallery"></div><h3>Tekst voor het zoekertje</h3><p class="provenance">Controleer de vraagprijs en conditie voor publicatie; de tekst kan afwijken van de actuele inventaris.</p><div class="adtools"><button type="button" id="copyAd">Kopieer zoekertje</button><span id="copyStatus" role="status" aria-live="polite"></span></div><div class="adtext" id="adText" tabindex="0"></div></div></dialog>
 <dialog id="editDialog" aria-labelledby="editTitle"><div class="dialogheader"><h2 id="editTitle">Model toevoegen</h2><button type="button" id="closeEdit">Annuleren ×</button></div><form id="modelForm" class="dialogbody">
 <p id="editHint" class="formhint"></p><div id="modelFields" class="formgrid"></div>
 <label class="widefield">Opmerking<textarea id="modelNote" rows="2" maxlength="10000"></textarea></label>
@@ -114,11 +130,12 @@ const hiddenColumns=new Set([10].filter(i=>data.records.length&&data.records.eve
 const sortSelect=document.getElementById('sortSelect');
 data.headers.forEach((name,index)=>{if(hiddenColumns.has(index))return;for(const direction of [1,-1])sortSelect.add(new Option(name+(direction===1?' ↑':' ↓'),index+':'+direction));});
 sortSelect.addEventListener('change',()=>{[sortColumn,sortDirection]=sortSelect.value.split(':').map(Number);render();});
-const views={cards:['cards','cardsViewButton'],table:['tableView','tableViewButton'],locations:['locationView','locationsViewButton']};
+const views={cards:['cards','cardsViewButton'],table:['tableView','tableViewButton'],locations:['locationView','locationsViewButton'],calendar:['calendarView','calendarViewButton']};
 function setView(next){if(!views[next])return;view=next;for(const [name,[panel,button]] of Object.entries(views)){document.getElementById(panel).hidden=name!==view;document.getElementById(button).setAttribute('aria-pressed',String(name===view));}document.body.classList.toggle('view-locations',view==='locations');}
 document.getElementById('cardsViewButton').addEventListener('click',()=>{setView('cards');saveViewState();});
 document.getElementById('tableViewButton').addEventListener('click',()=>{setView('table');saveViewState();});
 document.getElementById('locationsViewButton').addEventListener('click',()=>{setView('locations');saveViewState();});
+document.getElementById('calendarViewButton').addEventListener('click',()=>{setView('calendar');saveViewState();});
 document.getElementById('printLocations').addEventListener('click',()=>window.print());
 
 function selectRows(records,query,selected,column,direction){
@@ -157,7 +174,9 @@ function modelCard(record){
  const bottom=document.createElement('div');bottom.className='cardbottom';
  const price=document.createElement('div');price.className='cardprice';const priceLabel=document.createElement('span');priceLabel.className='pricelabel';priceLabel.textContent='Zonder doos';price.append(priceLabel,document.createTextNode(isUnknown(v[11])?'Prijs onbekend':formatValue(v[11],11)));
  const button=document.createElement('button');button.type='button';button.className='detailbutton';button.textContent='Bekijk model →';button.addEventListener('click',()=>openDetails(record));bottom.append(price,button);
- body.append(meta,brand,title,line,location,bottom);card.append(photo,body);return card;
+ body.append(meta,brand,title,line,location);
+ const appt=record.appointment;if(appt&&apptEnd(appt)>=new Date()){const p=document.createElement('p');p.className='cardappt';p.innerHTML='<svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="3" width="12" height="11" rx="1.5"/><path d="M2 6.5h12M5.5 1.5v3M10.5 1.5v3"/></svg>';p.append(document.createTextNode('Afspraak '+apptWhen(appt)));body.append(p);}
+ body.append(bottom);card.append(photo,body);return card;
 }
 function currentResults(){
  const media=document.getElementById('mediaFilter').value;
@@ -264,6 +283,7 @@ function openDetails(record){
  const quick=document.getElementById('quickStatus'),quickMessage=document.getElementById('quickStatusMessage');
  fillChoices(quick,14,record.values[14]);quick.value=isUnknown(record.values[14])?'':String(record.values[14]);quick.disabled=!appConfig;
  quickMessage.className='formhint';quickMessage.textContent=appConfig?'Wijziging wordt meteen opgeslagen.':'Open Start inventaris.cmd om de status te wijzigen.';
+ fillAppointment(record);
  document.getElementById('modelDialog').showModal();
 }
 // Snel de status wijzigen: bewaart hetzelfde als het formulier, met alleen de status aangepast.
@@ -277,6 +297,85 @@ document.getElementById('quickStatus').addEventListener('change',async event=>{
 });
 document.getElementById('closeDialog').addEventListener('click',()=>document.getElementById('modelDialog').close());
 document.getElementById('copyAd').addEventListener('click',async()=>{try{const plain=adPlain(activeAd);if(window.ClipboardItem&&navigator.clipboard.write){try{await navigator.clipboard.write([new ClipboardItem({'text/plain':new Blob([plain],{type:'text/plain'}),'text/html':new Blob([adHtml(activeAd)],{type:'text/html'})})]);}catch{await navigator.clipboard.writeText(plain);}}else await navigator.clipboard.writeText(plain);document.getElementById('copyStatus').textContent='Zoekertje gekopieerd.';}catch{const range=document.createRange();range.selectNodeContents(document.getElementById('adText'));const selection=window.getSelection();selection.removeAllRanges();selection.addRange(range);document.getElementById('copyStatus').textContent='Tekst geselecteerd. Druk op Ctrl+C om te kopiëren.';}});
+// ---- Afspraken met kopers, kalender en agenda-export ----
+const apptDayFormat=new Intl.DateTimeFormat('nl-BE',{weekday:'short',day:'numeric',month:'short'});
+const apptLongFormat=new Intl.DateTimeFormat('nl-BE',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+const apptTimeFormat=new Intl.DateTimeFormat('nl-BE',{hour:'2-digit',minute:'2-digit'});
+const monthFormat=new Intl.DateTimeFormat('nl-BE',{month:'long',year:'numeric'});
+function apptDate(a){const [d,t]=a.start.split('T');const [y,m,day]=d.split('-').map(Number);const [h,mi]=t.split(':').map(Number);return new Date(y,m-1,day,h,mi);}
+function apptEnd(a){return new Date(apptDate(a).getTime()+(a.duration||30)*60000);}
+function apptWhen(a){return apptDayFormat.format(apptDate(a))+' · '+apptTimeFormat.format(apptDate(a))+'–'+apptTimeFormat.format(apptEnd(a));}
+function apptRecords(){return data.records.filter(r=>r.appointment?.start).sort((a,b)=>apptDate(a.appointment)-apptDate(b.appointment));}
+function apptTitle(r){return 'Koper schaalmodel: '+r.values[1]+' '+r.values[2]+(r.appointment.buyer?' – '+r.appointment.buyer:'');}
+function apptDetails(r){const a=r.appointment;return [r.values[1]+' '+r.values[2],'Nr. '+r.values[0]+(isUnknown(r.values[9])?'':' · Locatie '+r.values[9]),'Vraagprijs zonder doos: '+formatValue(r.values[11],11),'Status: '+r.values[14],a.buyer?'Koper: '+a.buyer:'',a.note?'Notitie: '+a.note:''].filter(Boolean).join('\n');}
+function icsStamp(d){return d.toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'');}
+function icsEscape(s){return String(s).replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\r?\n/g,'\\n');}
+function icsFold(line){const enc=new TextEncoder();const parts=[];let cur='',len=0,limit=75;for(const ch of line){const l=enc.encode(ch).length;if(len+l>limit){parts.push(cur);cur='';len=0;limit=74;}cur+=ch;len+=l;}parts.push(cur);return parts.join('\r\n ');}
+function icsEvent(r){const a=r.appointment;return ['BEGIN:VEVENT','UID:schaalmodel-'+String(r.values[0]).replace(/[^A-Za-z0-9-]/g,'')+'@schaalmodellen.local','DTSTAMP:'+icsStamp(new Date()),'DTSTART:'+icsStamp(apptDate(a)),'DTEND:'+icsStamp(apptEnd(a)),'SUMMARY:'+icsEscape(apptTitle(r)),'DESCRIPTION:'+icsEscape(apptDetails(r)),'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:'+icsEscape(apptTitle(r)),'TRIGGER:-PT1H','END:VALARM','END:VEVENT'];}
+function icsCalendar(records){return ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Schaalmodellen//Inventaris//NL','CALSCALE:GREGORIAN','METHOD:PUBLISH',...records.flatMap(icsEvent),'END:VCALENDAR'].map(icsFold).join('\r\n')+'\r\n';}
+function downloadFile(name,content,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([content],{type}));a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
+function downloadIcs(records,name){downloadFile(name,icsCalendar(records),'text/calendar;charset=utf-8');}
+function googleUrl(r){const a=r.appointment;return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent(apptTitle(r))+'&dates='+icsStamp(apptDate(a))+'/'+icsStamp(apptEnd(a))+'&details='+encodeURIComponent(apptDetails(r));}
+function icsName(r){return 'afspraak-'+String(r.values[1]+'-'+r.values[2]).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,60)+'.ics';}
+function fillAppointment(record){
+ const a=record.appointment,ids=['apptStart','apptDuration','apptBuyer','apptNote','apptSave'];
+ const duration=document.getElementById('apptDuration'),value=String(a?.duration||30);
+ if(![...duration.options].some(o=>o.value===value))duration.add(new Option(value+' min',value));
+ document.getElementById('apptStart').value=a?.start||'';duration.value=value;
+ document.getElementById('apptBuyer').value=a?.buyer||'';document.getElementById('apptNote').value=a?.note||'';
+ ids.forEach(id=>document.getElementById(id).disabled=!appConfig);
+ document.getElementById('apptDelete').hidden=!a||!appConfig;document.getElementById('apptIcs').hidden=!a;
+ const google=document.getElementById('apptGoogle');google.hidden=!a;if(a)google.href=googleUrl(record);
+ const status=document.getElementById('apptStatus');status.className='formhint';
+ status.textContent=a?'Gepland: '+apptWhen(a)+'.':appConfig?'Nog geen afspraak.':'Open Start inventaris.cmd om een afspraak te plannen.';
+}
+async function saveAppointment(appointment){
+ const record=activeRecord,status=document.getElementById('apptStatus');if(!appConfig||!record)return;
+ const buttons=['apptSave','apptDelete'].map(id=>document.getElementById(id));buttons.forEach(b=>b.disabled=true);status.className='formhint';status.textContent='Afspraak opslaan…';
+ try{await appPost('/api/appointments',JSON.stringify({id:String(record.values[0]),identity:record.values.slice(1,6),appointment}));status.textContent='Opgeslagen. De collectie wordt vernieuwd…';location.reload();}
+ catch(error){status.textContent=error.message;status.className='formerror';buttons.forEach(b=>b.disabled=false);}
+}
+document.getElementById('apptSave').addEventListener('click',()=>{
+ const start=document.getElementById('apptStart').value.slice(0,16),status=document.getElementById('apptStatus');
+ if(!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(start)){status.textContent='Kies een datum en tijd.';status.className='formerror';return;}
+ saveAppointment({start,duration:Number(document.getElementById('apptDuration').value),buyer:document.getElementById('apptBuyer').value,note:document.getElementById('apptNote').value});
+});
+document.getElementById('apptDelete').addEventListener('click',()=>{if(confirm('Afspraak voor dit model verwijderen?'))saveAppointment(null);});
+document.getElementById('apptIcs').addEventListener('click',()=>{if(activeRecord?.appointment)downloadIcs([activeRecord],icsName(activeRecord));});
+document.getElementById('exportAllIcs').addEventListener('click',()=>{const records=apptRecords();if(!records.length){alert('Er zijn nog geen afspraken.');return;}downloadIcs(records,'schaalmodellen-afspraken.ics');});
+let calMonth=new Date();calMonth=new Date(calMonth.getFullYear(),calMonth.getMonth(),1);
+function eventButton(r,cls,text){const b=document.createElement('button');b.type='button';b.className=cls;b.textContent=text;b.title=apptWhen(r.appointment)+' · '+r.values[1]+' '+r.values[2]+(r.appointment.buyer?' · '+r.appointment.buyer:'');b.addEventListener('click',()=>openDetails(r));return b;}
+function apptRow(r){
+ const row=document.createElement('div');row.className='apptrow';const when=document.createElement('span');when.className='apptwhen';when.textContent=apptWhen(r.appointment);
+ const model=eventButton(r,'modelbutton',r.values[1]+' '+r.values[2]);
+ const meta=document.createElement('span');meta.className='apptmeta';meta.textContent=['Nr. '+r.values[0]+(isUnknown(r.values[9])?'':' · Locatie '+r.values[9]),[r.appointment.buyer,r.appointment.note].filter(Boolean).join(' · ')].filter(Boolean).join('\n');
+ const ics=document.createElement('button');ics.type='button';ics.className='secondarybutton';ics.textContent='.ics';ics.title='Exporteer als agenda-afspraak';ics.addEventListener('click',()=>downloadIcs([r],icsName(r)));
+ const google=document.createElement('a');google.className='secondarybutton';google.textContent='Google Agenda';google.target='_blank';google.rel='noopener';google.href=googleUrl(r);
+ row.append(when,model,meta,ics,google);return row;
+}
+function renderCalendar(){
+ const grid=document.getElementById('calGrid'),records=apptRecords(),now=new Date();
+ document.getElementById('calTitle').textContent=monthFormat.format(calMonth);
+ const cells=['ma','di','wo','do','vr','za','zo'].map(d=>{const h=document.createElement('div');h.className='calhead';h.textContent=d;return h;});
+ const first=new Date(calMonth),offset=(first.getDay()+6)%7,start=new Date(first.getFullYear(),first.getMonth(),1-offset);
+ const last=new Date(first.getFullYear(),first.getMonth()+1,0),weeks=Math.ceil((offset+last.getDate())/7);
+ const key=d=>d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate(),byDay=new Map();
+ for(const r of records){const k=key(apptDate(r.appointment));if(!byDay.has(k))byDay.set(k,[]);byDay.get(k).push(r);}
+ for(let i=0;i<weeks*7;i++){const day=new Date(start.getFullYear(),start.getMonth(),start.getDate()+i);const cell=document.createElement('div');
+  cell.className='calday'+(day.getMonth()!==calMonth.getMonth()?' other':'')+(key(day)===key(now)?' today':'');
+  const num=document.createElement('span');num.className='daynum';num.textContent=day.getDate();cell.append(num);
+  for(const r of byDay.get(key(day))||[])cell.append(eventButton(r,'calevent'+(apptEnd(r.appointment)<now?' past':''),apptTimeFormat.format(apptDate(r.appointment))+' '+r.values[1]+' '+r.values[2]));
+  cells.push(cell);}
+ grid.replaceChildren(...cells);
+ const upcoming=records.filter(r=>apptEnd(r.appointment)>=now),past=records.filter(r=>apptEnd(r.appointment)<now).reverse();
+ const list=document.getElementById('upcomingList');
+ if(upcoming.length)list.replaceChildren(...upcoming.map(apptRow));else{const p=document.createElement('p');p.className='formhint';p.textContent='Geen komende afspraken. Plan er een via Bekijk model › Afspraak met koper.';list.replaceChildren(p);}
+ const pastBox=document.getElementById('pastAppointments');pastBox.hidden=!past.length;pastBox.querySelector('summary').textContent='Voorbije afspraken ('+past.length+')';document.getElementById('pastList').replaceChildren(...past.map(apptRow));
+}
+document.getElementById('calPrev').addEventListener('click',()=>{calMonth=new Date(calMonth.getFullYear(),calMonth.getMonth()-1,1);renderCalendar();});
+document.getElementById('calNext').addEventListener('click',()=>{calMonth=new Date(calMonth.getFullYear(),calMonth.getMonth()+1,1);renderCalendar();});
+document.getElementById('calToday').addEventListener('click',()=>{const t=new Date();calMonth=new Date(t.getFullYear(),t.getMonth(),1);renderCalendar();});
+renderCalendar();
 if(data.unmatched?.length){document.getElementById('unmatchedSection').hidden=false;document.getElementById('unmatchedTitle').textContent=data.unmatched.length+' chats nog niet eenduidig gekoppeld';data.unmatched.forEach(chat=>{const li=document.createElement('li');const a=document.createElement('a');a.href='https://chatgpt.com/c/'+chat.id;a.target='_blank';a.rel='noopener';a.textContent=chat.title;li.append(a);document.getElementById('unmatchedList').append(li);});}
 document.getElementById('total').textContent=data.records.length;
 document.getElementById('brands').textContent=new Set(data.records.map(r=>r.values[1]).filter(v=>!isUnknown(v))).size;

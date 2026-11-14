@@ -133,6 +133,40 @@ class InventoryTests(unittest.TestCase):
         status, raw = self.request('POST', '/api/models/' + ('restore' if restore else 'delete'), json.dumps(metadata).encode(), headers)
         return status, json.loads(raw)
 
+    def appointment(self, record, item):
+        metadata = {'id': str(record['values'][0]), 'identity': record['values'][1:6], 'appointment': item}
+        headers = {'Content-Type': 'application/json', 'Origin': self.origin, 'X-Inventaris-Token': self.http.token, 'X-Inventaris-Revision': server.revision(self.directory)}
+        status, raw = self.request('POST', '/api/appointments', json.dumps(metadata).encode(), headers)
+        return status, json.loads(raw)
+
+    def test_appointments_save_survive_refresh_and_delete(self):
+        self.assertEqual(self.post(self.metadata())[0], 200)
+        records = b.snapshot(self.directory)['records']
+        excel = next(r for r in records if r['origin'] == 'excel')
+        local = next(r for r in records if r['origin'] == 'local')
+        item = {'start': '2026-11-20T14:30', 'duration': 30, 'buyer': 'Jan <06>', 'note': 'Contant'}
+        for record in (excel, local):
+            self.assertEqual(self.appointment(record, item)[0], 200)
+        # Ongeldige invoer verandert niets.
+        self.assertEqual(self.appointment(excel, {**item, 'start': '20-11-2026'})[0], 400)
+        self.assertEqual(self.appointment(excel, {**item, 'duration': 0})[0], 400)
+        b.main(self.directory)
+        server.rebuild(self.directory)
+        data = b.snapshot(self.directory)
+        self.assertEqual([r.get('appointment') for r in data['records']], [item, item])
+        self.assertEqual(data['localWarnings'], [])
+        # Bewerken van een model behoudt de afspraak.
+        record = next(r for r in data['records'] if r['origin'] == 'excel')
+        edit = {'id': '1', 'identity': record['values'][1:6], 'values': [str(v) for v in record['values']], 'note': '', 'photos': [], 'ad': ''}
+        edit['values'][14] = 'Gereserveerd'
+        self.assertEqual(self.post(edit, {})[0], 200)
+        self.assertEqual(b.snapshot(self.directory)['records'][0]['appointment'], item)
+        # Verwijderen van de afspraak.
+        for record in b.snapshot(self.directory)['records']:
+            self.assertEqual(self.appointment(record, None)[0], 200)
+        self.assertTrue(all('appointment' not in r for r in b.snapshot(self.directory)['records']))
+        self.assertNotIn('appointments', b.load_local(self.directory))
+
     def test_edit_excel_fields_preserves_other_excel_updates(self):
         before = hashlib.sha256(self.source.read_bytes()).hexdigest()
         record = b.snapshot(self.directory)['records'][0]

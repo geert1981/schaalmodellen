@@ -27,7 +27,7 @@ def load_local(directory):
     data = json.loads(path.read_text(encoding='utf-8'))
     if not isinstance(data.get('models'), list) or not isinstance(data.get('excel_media'), dict):
         raise ValueError('Ongeldige structuur in ' + LOCAL_FILE)
-    for key in ('excel_edits', 'hidden_excel'):
+    for key in ('excel_edits', 'hidden_excel', 'appointments'):
         if not isinstance(data.get(key, {}), dict):
             raise ValueError('Ongeldige structuur in ' + LOCAL_FILE + ': ' + key)
     if not isinstance(data.get('archived_models', []), list):
@@ -90,9 +90,31 @@ def merge_local(data, local):
             raise ValueError('Dubbel modelnummer: ' + key)
         used.add(key)
         data['records'].append(record)
+    attach_appointments(data, local)
     data['trash'] = [{'id': str(r['values'][0]), 'title': str(r['values'][1]) + ' ' + str(r['values'][2]), 'origin': 'local'} for r in local.get('archived_models', [])]
     data['trash'].extend({'id': key, 'title': item['title'], 'origin': 'excel'} for key, item in local.get('hidden_excel', {}).items())
     return data
+
+
+def attach_appointments(data, local):
+    """Koppel afspraken met kopers aan de modellen (per modelnummer, met identiteitscontrole voor Excel)."""
+    appointments = local.get('appointments', {})
+    for record in data['records'] + data['hiddenRecords']:
+        record.pop('appointment', None)
+    trashed = {str(r['values'][0]) for r in local.get('archived_models', [])} | set(local.get('hidden_excel', {}))
+    for record in data['records']:
+        key = str(record['values'][0])
+        item = appointments.get(key)
+        if not item:
+            continue
+        identity = item.get('identity')
+        baseline = record.get('originalValues', record['values'])[1:6]
+        if identity is None or identity == baseline:
+            record['appointment'] = {k: item[k] for k in ('start', 'duration', 'buyer', 'note') if k in item}
+    shown = {str(r['values'][0]) for r in data['records'] if 'appointment' in r}
+    for key in appointments:
+        if key not in shown and key not in trashed:
+            data['localWarnings'].append('De afspraak voor model ' + key + ' is bewaard, maar niet getoond omdat het model ontbreekt of de identiteit is gewijzigd.')
 
 
 def snapshot(directory):
