@@ -18,12 +18,19 @@ dialog{border:1px solid #bdcdbf;border-radius:12px;padding:0;width:min(1080px,95
 @media(min-width:1500px){.cards{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media(max-width:900px){.headerinner{align-items:start}.summary{gap:18px}.stat{min-width:70px}.stat span{display:block;max-width:90px}.filters{grid-template-columns:repeat(2,minmax(0,1fr))}.detailfacts{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){header{padding:22px 20px}.headerinner{display:block}.summary{margin-top:22px;justify-content:space-between}.stat strong{font-size:26px}.stat span{max-width:none;font-size:11px}main{padding:20px 16px 30px}.controls{padding:15px}.searchrow{flex-wrap:wrap}.searchrow label{flex-basis:100%}#reset{padding:7px 12px;font-size:12px}.tablebar{display:block}.viewtools{margin-top:14px;justify-content:space-between;gap:8px}.viewtools label{min-width:0;flex:1}.viewtoggle button{padding:10px}.cards{gap:16px}.cardphoto{height:230px}.dialogbody{padding:16px}.dialogheader{padding:15px}.dialogheader h2{font-size:20px}.detailfacts{gap:0 14px}.gallery{grid-template-columns:1fr}.gallery img{height:230px}.detailfacts dd{font-size:12px}}
-@media print{header{background:white;color:black;padding:0;border:0}.summary,header p,.controls,.viewtools,.cards,.tablehint,footer,main>details,dialog{display:none!important}main{padding:10px 0}#tableView[hidden]{display:block!important}.tablewrap{max-height:none;overflow:visible}th{position:static}table{font-size:8px}th,th:nth-child(3),th:nth-child(7){min-width:0}th button,td{padding:4px}td .detailbutton{display:none}body{background:white}}
+@media print{header{background:white;color:black;padding:0;border:0}.summary,header p,.controls,.viewtools,.cards,.tablehint,footer,main>details,dialog{display:none!important}main{padding:10px 0}body:not(.view-locations) #tableView[hidden]{display:block!important}.tablewrap{max-height:none;overflow:visible}th{position:static}table{font-size:8px}th,th:nth-child(3),th:nth-child(7){min-width:0}th button,td{padding:4px}td .detailbutton{display:none}body{background:white}}
 
 .managebar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:18px}.primarybutton{border:1px solid var(--green);background:var(--green);color:#fff;padding:10px 16px;border-radius:6px;font-weight:600;font-size:13px}.secondarybutton{border:1px solid #cbd5cd;background:#fff;padding:10px 14px;border-radius:6px;font-size:13px}.managebar p{flex:1;margin:0;font-size:12px;color:var(--muted);min-width:200px}button:disabled{opacity:.55;cursor:wait}.formgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}.formgrid input:disabled,#modelNote:disabled{background:#f1f2ed;color:var(--muted)}textarea{display:block;width:100%;margin-top:6px;padding:12px;border:1px solid #cbd5cd;border-radius:6px;font:14px/1.5 "Segoe UI",sans-serif;resize:vertical;color:var(--ink)}textarea:focus-visible{outline:3px solid #b58941;outline-offset:3px}.widefield{margin-top:18px}.photoqueue{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:12px;margin:14px 0}.queuedphoto{border:1px solid var(--line);border-radius:6px;padding:8px;min-width:0}.queuedphoto img{width:100%;height:100px;object-fit:contain;background:#f3f4ee}.queuedphoto p{margin:4px 0 8px;color:var(--muted);font-size:11px;overflow-wrap:anywhere}.phototools{display:flex;gap:4px}.phototools button{border:1px solid var(--line);border-radius:4px;background:#fff;padding:4px 7px;font-size:12px}.formactions{display:flex;align-items:center;gap:14px;position:sticky;bottom:0;padding:16px 0 0;background:#fff;margin-top:20px}.formactions p{margin:0;font-size:12px;white-space:pre-line}.formerror{color:#a13822}.formhint{color:var(--muted);font-size:12px}#localWarnings{white-space:pre-line;padding:12px 16px;border:1px solid #e3d9be;background:#faf6ea;border-radius:6px;margin-bottom:18px}
 @media(max-width:700px){.formgrid{grid-template-columns:repeat(2,minmax(0,1fr))}.formactions{flex-wrap:wrap}}
 @media(max-width:420px){.formgrid{grid-template-columns:1fr}}
 @media print{.managebar,#localWarnings{display:none!important}}
+.pricefilter{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;max-width:420px;margin-top:12px}
+.locationtools{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}.locationtools .tablehint{margin:0}
+.locationgroup{background:#fff;border:1px solid var(--line);border-radius:8px;margin-bottom:16px;overflow:hidden}.locationgroup h3{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:0;padding:12px 14px;font:600 17px "Segoe UI",sans-serif;color:var(--green);border-bottom:1px solid var(--line)}.locationgroup h3 span{font-size:12px;font-weight:400;color:var(--muted)}
+.locationtable{font-size:13px}.locationtable th,.locationtable th:first-child,.locationtable th:nth-child(3),.locationtable th:nth-child(7){position:static;min-width:0;padding:8px 12px;font-size:11px;font-weight:600;color:var(--muted)}.locationtable td{padding:8px 12px}.locationtable .nrcol{width:60px}.locationtable .modelbutton{border:0;background:none;padding:0;text-align:left;font-weight:600;color:var(--green);text-decoration:underline;text-underline-offset:2px}
+[data-theme="dark"] .locationgroup{background:#1a2420}
+@media(max-width:700px){.locationtable .hidesmall{display:none}}
+@media print{.locationtools,.viewtoggle{display:none!important}.view-locations #tableView{display:none!important}.locationgroup{break-inside:avoid;border-color:#999;background:#fff}.locationtable{font-size:10px}.locationtable .modelbutton{color:#000;text-decoration:none}.locationtable .hidesmall{display:table-cell!important}}
 .summary{flex-wrap:wrap;row-gap:12px}.quickstatus{display:flex;align-items:end;gap:14px;flex-wrap:wrap;margin:0 0 18px}.quickstatus label{min-width:200px;max-width:260px}.quickstatus span{font-size:12px;padding-bottom:10px}
 .cardlocation{display:flex;align-items:center;gap:5px;margin:6px 0 0;font-size:12px;font-weight:600;color:var(--green);overflow-wrap:anywhere}.cardlocation svg{width:14px;height:14px;flex-shrink:0}.cardlocation.unknownlocation{color:var(--muted);font-weight:400}
 .themebutton{border:1px solid #9ab5a4;border-radius:6px;background:transparent;color:#fff;padding:8px 12px;font-size:13px;white-space:nowrap}.themebutton:hover{background:#ffffff14}
@@ -61,8 +68,9 @@ dialog{border:1px solid #bdcdbf;border-radius:12px;padding:0;width:min(1080px,95
 <main>
 <div class="managebar"><button id="addModel" type="button" class="primarybutton">+ Model toevoegen</button><button id="openTrash" type="button" class="secondarybutton">Prullenbak</button><button id="refreshExcel" type="button" class="secondarybutton" hidden>Excel opnieuw inlezen</button><p id="appStatus" role="status" aria-live="polite">Voor toevoegen en bewerken: open Start inventaris.cmd.</p></div>
 <div id="localWarnings" hidden role="status"></div>
-<section class="controls" aria-label="Zoeken en filteren"><div class="searchrow"><label>Zoeken in alle gegevens<input id="search" type="search" placeholder="Bijvoorbeeld Ford, Kyosho, 1:18 of artikelnummer…" autocomplete="off"></label><button id="reset" type="button">Wis filters</button></div><details class="filterdetails"><summary>Filters <span id="filterCount"></span></summary><div class="filters" id="filters"></div><label class="mediafilter">Foto's en zoekertjes<select id="mediaFilter"><option value="">Alle registraties</option><option value="photos">Met foto's</option><option value="ad">Met zoekertjestekst</option><option value="both">Met foto's en zoekertjestekst</option><option value="none">Zonder foto’s of tekst</option></select></label></details></section>
-<div class="tablebar"><div class="resultgroup"><h2>De collectie</h2><strong id="result" role="status" aria-live="polite"></strong></div><div class="viewtools"><label>Sorteren op<select id="sortSelect" aria-label="Sorteren op"></select></label><button id="exportCsv" type="button" class="secondarybutton" title="Exporteer de getoonde modellen (zoeken, filters en sortering) als CSV">Exporteer CSV</button><div class="viewtoggle" role="group" aria-label="Weergave"><button id="cardsViewButton" type="button" aria-pressed="true" aria-controls="cards">Foto-overzicht</button><button id="tableViewButton" type="button" aria-pressed="false" aria-controls="tableView">Tabel</button></div></div></div>
+<section class="controls" aria-label="Zoeken en filteren"><div class="searchrow"><label>Zoeken in alle gegevens<input id="search" type="search" placeholder="Bijvoorbeeld Ford, Kyosho, 1:18 of artikelnummer…" autocomplete="off"></label><button id="reset" type="button">Wis filters</button></div><details class="filterdetails"><summary>Filters <span id="filterCount"></span></summary><div class="filters" id="filters"></div><label class="mediafilter">Foto's en zoekertjes<select id="mediaFilter"><option value="">Alle registraties</option><option value="photos">Met foto's</option><option value="ad">Met zoekertjestekst</option><option value="both">Met foto's en zoekertjestekst</option><option value="none">Zonder foto’s of tekst</option></select></label><div class="pricefilter"><label>Prijs zonder doos vanaf (€)<input id="priceMin" type="number" min="0" step="any" inputmode="decimal" placeholder="bv. 20"></label><label>tot en met (€)<input id="priceMax" type="number" min="0" step="any" inputmode="decimal" placeholder="bv. 50"></label></div></details></section>
+<div class="tablebar"><div class="resultgroup"><h2>De collectie</h2><strong id="result" role="status" aria-live="polite"></strong></div><div class="viewtools"><label>Sorteren op<select id="sortSelect" aria-label="Sorteren op"></select></label><button id="exportCsv" type="button" class="secondarybutton" title="Exporteer de getoonde modellen (zoeken, filters en sortering) als CSV">Exporteer CSV</button><div class="viewtoggle" role="group" aria-label="Weergave"><button id="cardsViewButton" type="button" aria-pressed="true" aria-controls="cards">Foto-overzicht</button><button id="tableViewButton" type="button" aria-pressed="false" aria-controls="tableView">Tabel</button><button id="locationsViewButton" type="button" aria-pressed="false" aria-controls="locationView">Per locatie</button></div></div></div>
+<div id="locationView" hidden><div class="locationtools"><p class="tablehint">Gegroepeerd per locatie · zoeken, filters en sortering gelden ook hier</p><button id="printLocations" type="button" class="secondarybutton">Afdrukken</button></div><div id="locationGroups"></div></div>
 <div id="cards" class="cards" aria-label="Modellen met foto"></div>
 <div id="tableView" hidden><p class="tablehint"><span id="columnCount">Alle 15 kolommen</span> · klik op een kolomtitel om te sorteren · schuif horizontaal voor meer gegevens</p><div class="tablewrap" tabindex="0" role="region" aria-label="Inventaris met 15 kolommen"><table><caption style="position:absolute;clip-path:inset(50%);width:1px;height:1px;overflow:hidden">Inventaris van autoschaalmodellen</caption><thead><tr id="head"></tr></thead><tbody id="rows"></tbody></table></div></div>
 <div id="empty" hidden>Geen modellen gevonden. Pas de zoekterm of filters aan.</div>
@@ -88,6 +96,10 @@ const data=JSON.parse(document.getElementById('inventory-data').textContent);
 const themeToggle=document.getElementById('themeToggle');
 function applyTheme(theme){document.documentElement.dataset.theme=theme;const dark=theme==='dark';themeToggle.textContent=dark?'☀ Licht thema':'☾ Donker thema';themeToggle.setAttribute('aria-pressed',String(dark));themeToggle.title=dark?'Schakel naar licht thema':'Schakel naar donker thema';}
 applyTheme(document.documentElement.dataset.theme==='dark'?'dark':'light');
+// Afdrukken altijd in licht thema.
+let themeBeforePrint=null;
+addEventListener('beforeprint',()=>{themeBeforePrint=document.documentElement.dataset.theme;document.documentElement.dataset.theme='light';});
+addEventListener('afterprint',()=>{if(themeBeforePrint)document.documentElement.dataset.theme=themeBeforePrint;themeBeforePrint=null;});
 themeToggle.addEventListener('click',()=>{const next=document.documentElement.dataset.theme==='dark'?'light':'dark';applyTheme(next);try{localStorage.setItem('inventaris-thema',next);}catch{}});
 const collator=new Intl.Collator('nl-BE',{numeric:true,sensitivity:'base'});
 const currency=new Intl.NumberFormat('nl-BE',{style:'currency',currency:'EUR',maximumFractionDigits:2});
@@ -102,9 +114,12 @@ const hiddenColumns=new Set([10].filter(i=>data.records.length&&data.records.eve
 const sortSelect=document.getElementById('sortSelect');
 data.headers.forEach((name,index)=>{if(hiddenColumns.has(index))return;for(const direction of [1,-1])sortSelect.add(new Option(name+(direction===1?' ↑':' ↓'),index+':'+direction));});
 sortSelect.addEventListener('change',()=>{[sortColumn,sortDirection]=sortSelect.value.split(':').map(Number);render();});
-function setView(next){view=next;document.getElementById('cards').hidden=view!=='cards';document.getElementById('tableView').hidden=view!=='table';document.getElementById('cardsViewButton').setAttribute('aria-pressed',String(view==='cards'));document.getElementById('tableViewButton').setAttribute('aria-pressed',String(view==='table'));}
+const views={cards:['cards','cardsViewButton'],table:['tableView','tableViewButton'],locations:['locationView','locationsViewButton']};
+function setView(next){if(!views[next])return;view=next;for(const [name,[panel,button]] of Object.entries(views)){document.getElementById(panel).hidden=name!==view;document.getElementById(button).setAttribute('aria-pressed',String(name===view));}document.body.classList.toggle('view-locations',view==='locations');}
 document.getElementById('cardsViewButton').addEventListener('click',()=>{setView('cards');saveViewState();});
 document.getElementById('tableViewButton').addEventListener('click',()=>{setView('table');saveViewState();});
+document.getElementById('locationsViewButton').addEventListener('click',()=>{setView('locations');saveViewState();});
+document.getElementById('printLocations').addEventListener('click',()=>window.print());
 
 function selectRows(records,query,selected,column,direction){
  const terms=fold(query).trim().split(/\s+/).filter(Boolean);
@@ -145,7 +160,32 @@ function modelCard(record){
 function currentResults(){
  const media=document.getElementById('mediaFilter').value;
  const candidates=data.records.filter(r=>{const photos=!!r.extra?.photos?.length,ad=!!r.extra?.ad;return !media||media==='photos'&&photos||media==='ad'&&ad||media==='both'&&photos&&ad||media==='none'&&!photos&&!ad;});
- return selectRows(candidates,document.getElementById('search').value,filters.map(f=>({index:f.index,value:f.select.value})),sortColumn,sortDirection);
+ // Prijsfilter op vraagprijs zonder doos; modellen zonder prijs vallen weg zodra een grens is ingevuld.
+ const [min,max]=priceBounds();
+ const priced=min==null&&max==null?candidates:candidates.filter(r=>{const p=r.values[11];return typeof p==='number'&&(min==null||p>=min)&&(max==null||p<=max);});
+ return selectRows(priced,document.getElementById('search').value,filters.map(f=>({index:f.index,value:f.select.value})),sortColumn,sortDirection);
+}
+function priceBounds(){return ['priceMin','priceMax'].map(id=>{const raw=document.getElementById(id).value.trim();const n=raw===''?NaN:Number(raw.replace(',','.'));return Number.isFinite(n)?n:null;});}
+// Weergave per locatie: groepen op locatienummer, binnen een groep de gekozen sortering.
+function renderLocations(results){
+ const groups=new Map();
+ for(const r of results){const key=String(r.values[9]);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(r);}
+ const keys=[...groups.keys()].sort((a,b)=>isUnknown(a)!==isUnknown(b)?(isUnknown(a)?1:-1):collator.compare(a,b));
+ const euro=new Intl.NumberFormat('nl-BE',{style:'currency',currency:'EUR',maximumFractionDigits:0});
+ const columns=[['Nr.',r=>r.values[0],'nrcol'],['Automerk',r=>r.values[1]],['Model',null],['Schaal',r=>r.values[7],'hidesmall'],['Fabrikant',r=>r.values[4],'hidesmall'],['Status',r=>r.values[14]],['Zonder doos',r=>formatValue(r.values[11],11),'price']];
+ const sections=keys.map(key=>{
+  const rows=groups.get(key),section=document.createElement('section');section.className='locationgroup';
+  const title=document.createElement('h3');title.textContent=isUnknown(key)?'Locatie onbekend':'Locatie '+key;
+  const sum=rows.reduce((t,r)=>t+(typeof r.values[11]==='number'&&fold(r.values[14]).trim()!=='verkocht'?r.values[11]:0),0);
+  const info=document.createElement('span');info.textContent=rows.length+(rows.length===1?' model':' modellen')+(sum?' · '+euro.format(sum)+' te koop':'');title.append(info);
+  const table=document.createElement('table');table.className='locationtable';const head=table.createTHead().insertRow();
+  for(const [name,,cls] of columns){const th=document.createElement('th');th.scope='col';th.textContent=name;if(cls)th.className=cls;head.append(th);}
+  const body=table.createTBody();
+  for(const r of rows){const tr=body.insertRow();for(const [name,get,cls] of columns){const td=tr.insertCell();if(cls)td.className=cls;
+   if(!get){const b=document.createElement('button');b.type='button';b.className='modelbutton';b.textContent=r.values[2];b.addEventListener('click',()=>openDetails(r));td.append(b);continue;}
+   const value=get(r);if(isUnknown(value))td.classList.add('unknown');if(name==='Status')td.append(statusBadge(value));else td.textContent=value;}}
+  section.append(title,table);return section;});
+ document.getElementById('locationGroups').replaceChildren(...sections);
 }
 // CSV voor Excel (nl-BE): puntkomma als scheiding, komma als decimaalteken, UTF-8 met BOM.
 function exportCsv(){
@@ -159,7 +199,7 @@ function exportCsv(){
 document.getElementById('exportCsv').addEventListener('click',exportCsv);
 // Zoekterm, filters, sortering en weergave onthouden in deze browser (ook na opslaan of vernieuwen).
 const VIEW_KEY='inventaris-weergave';
-function saveViewState(){try{localStorage.setItem(VIEW_KEY,JSON.stringify({search:document.getElementById('search').value,media:document.getElementById('mediaFilter').value,filters:Object.fromEntries(filters.map(f=>[f.index,f.select.value])),sortColumn,sortDirection,view}));}catch{}}
+function saveViewState(){try{localStorage.setItem(VIEW_KEY,JSON.stringify({search:document.getElementById('search').value,media:document.getElementById('mediaFilter').value,priceMin:document.getElementById('priceMin').value,priceMax:document.getElementById('priceMax').value,filters:Object.fromEntries(filters.map(f=>[f.index,f.select.value])),sortColumn,sortDirection,view}));}catch{}}
 function restoreViewState(){
  let state=null;try{state=JSON.parse(localStorage.getItem(VIEW_KEY));}catch{}
  if(!state||typeof state!=='object')return;
@@ -168,8 +208,9 @@ function restoreViewState(){
  const media=document.getElementById('mediaFilter');if(hasOption(media,state.media))media.value=state.media;
  for(const f of filters){const value=state.filters?.[f.index];if(typeof value==='string'&&hasOption(f.select,value))f.select.value=value;}
  if(Number.isInteger(state.sortColumn)&&state.sortColumn>=0&&state.sortColumn<data.headers.length&&!hiddenColumns.has(state.sortColumn)&&(state.sortDirection===1||state.sortDirection===-1)){sortColumn=state.sortColumn;sortDirection=state.sortDirection;}
- if(state.view==='table'||state.view==='cards')setView(state.view);
- if(filters.some(f=>f.select.value)||media.value)document.querySelector('.filterdetails').open=true;
+ for(const id of ['priceMin','priceMax'])if(typeof state[id]==='string'&&/^\d*([.,]\d*)?$/.test(state[id]))document.getElementById(id).value=state[id];
+ if(views[state.view])setView(state.view);
+ if(filters.some(f=>f.select.value)||media.value||priceBounds().some(b=>b!=null))document.querySelector('.filterdetails').open=true;
 }
 function render(){
  const media=document.getElementById('mediaFilter').value;
@@ -177,7 +218,8 @@ function render(){
  document.getElementById('result').textContent=`${results.length} van ${data.records.length} modellen`;
  document.getElementById('empty').hidden=results.length!==0;
  sortSelect.value=sortColumn+':'+sortDirection;
- const activeFilters=filters.filter(f=>f.select.value).length+(media?1:0);
+ const activeFilters=filters.filter(f=>f.select.value).length+(media?1:0)+(priceBounds().some(b=>b!=null)?1:0);
+ renderLocations(results);
  document.getElementById('filterCount').textContent=activeFilters?'('+activeFilters+' actief)':'';
  document.getElementById('cards').replaceChildren(...results.map(modelCard));
  const fragment=document.createDocumentFragment();
@@ -191,7 +233,8 @@ function render(){
  [...document.getElementById('head').children].forEach((th,i)=>{if(i===sortColumn)th.setAttribute('aria-sort',sortDirection===1?'ascending':'descending');else th.removeAttribute('aria-sort');th.firstChild.textContent=data.headers[i]+(i===sortColumn?(sortDirection===1?' ↑':' ↓'):' ↕');});
 }
 document.getElementById('search').addEventListener('input',render);
-document.getElementById('reset').addEventListener('click',()=>{document.getElementById('search').value='';document.getElementById('mediaFilter').value='';filters.forEach(f=>f.select.value='');sortColumn=0;sortDirection=1;render();});
+for(const id of ['priceMin','priceMax'])document.getElementById(id).addEventListener('input',render);
+document.getElementById('reset').addEventListener('click',()=>{document.getElementById('search').value='';document.getElementById('mediaFilter').value='';document.getElementById('priceMin').value='';document.getElementById('priceMax').value='';filters.forEach(f=>f.select.value='');sortColumn=0;sortDirection=1;render();});
 document.getElementById('mediaFilter').addEventListener('change',render);
 let activeAd='',activeRecord=null;
 function openDetails(record){

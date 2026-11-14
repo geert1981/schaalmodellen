@@ -23,6 +23,11 @@ en de collectiewaarde zonder de verkochte modellen (vraagprijs zonder doos).
 Houd de muis op een getal voor uitleg, o.a. hoeveel modellen geen prijs hebben.
 In Bekijk model kun je de status van het zoekertje meteen wijzigen via de
 keuzelijst; dat wordt direct opgeslagen (alleen met Start inventaris.cmd).
+Per locatie (naast Foto-overzicht en Tabel) groepeert de modellen per
+locatienummer, met aantal en waarde te koop per locatie. Zoeken, filters en
+sortering gelden ook hier. Met Afdrukken krijg je een lijst per locatie.
+Onder Filters kun je een prijsgrens (vraagprijs zonder doos) instellen,
+bijvoorbeeld vanaf 20 tot en met 50 euro. Modellen zonder prijs vallen dan weg.
 Zoekterm, filters, sortering en weergave worden in de browser onthouden.
 Wis filters zet zoeken, filters en sortering terug.
 Een kolom die bij geen enkel model is ingevuld (nu Doos) wordt in tabel,
