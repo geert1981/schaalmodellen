@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Schaalmodellen · Inventaris</title>
+<script>/* Thema vroeg zetten om flitsen te vermijden: bewaarde keuze, anders systeeminstelling. */
+(function(){let t=null;try{t=localStorage.getItem('inventaris-thema');}catch{}if(t!=='dark'&&t!=='light')t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t;})();</script>
+<style>
+
+:root{color-scheme:light;--ink:#20342f;--muted:#65736d;--line:#dfe5df;--green:#245b48;--paper:#f5f4ef;--accent:#c4a168}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.5 "Segoe UI",sans-serif}button,input,select{font:inherit}button,summary{cursor:pointer}button{color:inherit}button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,[tabindex]:focus-visible,summary:focus-visible{outline:3px solid #b58941;outline-offset:3px}[hidden]{display:none!important}a{color:var(--green)}
+header{padding:28px max(24px,4vw);background:#193e33;color:#fff;border-bottom:4px solid var(--accent)}.headerinner{max-width:1520px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:32px}.eyebrow{text-transform:uppercase;letter-spacing:.18em;font-size:10px;color:#d4bd97;font-weight:700}h1{font:500 clamp(30px,4vw,42px)/1.2 Georgia,serif;margin:7px 0}header p{color:#d1ded6;margin:0;font-size:13px}.summary{display:flex;gap:32px}.stat{min-width:95px}.stat strong{display:block;font:500 30px Georgia,serif}.stat span{color:#cedbd2;font-size:12px}
+main{max-width:1640px;margin:auto;padding:26px max(20px,4vw) 40px}.controls{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin-bottom:26px}.searchrow{display:flex;align-items:end;gap:12px}.searchrow label{flex:1}label{display:block;font-size:12px;font-weight:600;color:var(--muted)}input,select{display:block;width:100%;min-width:0;margin-top:6px;padding:10px 12px;color:var(--ink);background:#fff;border:1px solid #cbd5cd;border-radius:6px;font-size:14px}#search{background:#f8f9f5;font-size:16px;padding:12px 14px}#reset{border:1px solid var(--line);background:#fff;border-radius:6px;padding:12px 16px;white-space:nowrap}.filterdetails{margin-top:14px}.filterdetails summary{font-size:13px;font-weight:600;color:var(--green);width:fit-content}.filters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:14px}.mediafilter{margin-top:12px;max-width:300px}
+.tablebar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px}.resultgroup h2{font:500 25px Georgia,serif;margin:0 0 3px}.resultgroup strong{font-size:12px;font-weight:400;color:var(--muted)}.viewtools{display:flex;gap:12px;align-items:end}.viewtools label{min-width:165px;max-width:280px}.viewtoggle{display:flex;border:1px solid #cbd5cd;border-radius:7px;padding:3px;background:#fff}.viewtoggle button{padding:9px 14px;border:0;border-radius:4px;background:transparent;font-size:13px}.viewtoggle button[aria-pressed="true"]{background:var(--green);color:#fff}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr));gap:20px}.modelcard{min-width:0;border:1px solid var(--line);background:#fff;border-radius:10px;overflow:hidden;transition:box-shadow .15s,border-color .15s}.modelcard:hover{border-color:#a5b9a8;box-shadow:0 6px 22px #20342f10}.cardphoto{position:relative;display:flex;align-items:center;justify-content:center;width:100%;height:200px;border:0;border-bottom:1px solid var(--line);background:#eceee8;padding:0;overflow:hidden}.cardphoto img{width:100%;height:100%;object-fit:contain}.photocount{position:absolute;bottom:10px;right:10px;background:#fffefb;border-radius:4px;padding:3px 8px;font-size:11px;color:var(--ink)}.nophoto{text-align:center;color:#7a857b;font-size:12px}.nophoto svg{display:block;width:90px;height:42px;margin:0 auto 12px;opacity:.55}.cardbody{padding:17px 18px}.cardmeta{display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:11px;color:var(--muted);margin-bottom:9px}.cardbrand{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--green);font-weight:700}.modelcard h3{font:600 19px/1.3 "Segoe UI",sans-serif;margin:5px 0 9px;overflow-wrap:anywhere}.cardline{font-size:12px;color:var(--muted);margin:0;overflow-wrap:anywhere}.cardbottom{flex-wrap:wrap;margin-top:17px;padding-top:13px;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px}.cardprice{font-size:19px;font-weight:600;white-space:nowrap}.pricelabel{display:block;color:var(--muted);font-size:10px;font-weight:400}.detailbutton{padding:7px 11px;border:1px solid #ced9cd;border-radius:5px;background:#f3f6ef;color:var(--green);font-size:12px}.badge{display:inline-block;border-radius:4px;padding:3px 7px;background:#f0f1ed;color:#627063;font-size:11px;overflow-wrap:anywhere}.online{background:#e3f0df;color:#356337}.sold{background:#ecebe7;color:#696a64}.reserved{background:#faf0d9;color:#89651d}
+.tablewrap{overflow:auto;max-height:70vh;border:1px solid var(--line);border-radius:8px;background:white}table{border-collapse:separate;border-spacing:0;width:100%;font-size:13px}th{position:sticky;top:0;z-index:2;background:#e9eee5;text-align:left;min-width:125px;border-bottom:1px solid #cbd5c7;vertical-align:bottom}th:first-child{min-width:60px}th:nth-child(3){min-width:230px}th:nth-child(7){min-width:250px}th button{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:14px 12px;width:100%;border:0;background:none;text-align:left;font-size:12px;font-weight:600}td{padding:12px;border-bottom:1px solid #e8ece5;vertical-align:top;white-space:pre-line;overflow-wrap:anywhere}td:nth-child(2),td:nth-child(3){font-weight:600}tbody tr:nth-child(even){background:#fafbf7}tbody tr:hover{background:#f0f5e9}td.price{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}td .detailbutton{display:block;margin-top:8px}.unknown{color:#7d877d;font-weight:400}.note{display:block;font-size:12px;font-weight:400;margin-top:5px;color:#77552c}.tablehint{color:var(--muted);font-size:12px;margin:0 0 10px}#empty{border:1px dashed #cbd5c7;border-radius:10px;padding:50px 20px;text-align:center;color:var(--muted)}footer{border-top:1px solid var(--line);margin-top:30px;padding-top:17px;font-size:12px;color:var(--muted)}footer details{margin-top:10px}#source{overflow-wrap:anywhere}#unmatchedSection{padding:14px 18px;border:1px solid #e3d9be;background:#faf6ea;border-radius:8px;margin-top:20px;font-size:13px}.unmatchedlist{padding-left:20px}
+dialog{border:1px solid #bdcdbf;border-radius:12px;padding:0;width:min(1080px,95vw);max-height:92vh;color:var(--ink);box-shadow:0 25px 80px #0005}dialog::backdrop{background:#10251cbb}.dialogheader{position:sticky;top:0;z-index:3;display:flex;align-items:center;justify-content:space-between;gap:18px;background:#193e33;color:#fff;padding:18px 22px}.dialogheader h2{margin:0;font:500 25px Georgia,serif}.dialogheader button{border:1px solid #9ab5a4;border-radius:5px;background:transparent;color:white;padding:6px 12px}.dialogbody{padding:24px}.detailfacts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 24px;margin:0 0 24px}.detailfacts div{border-bottom:1px solid var(--line);padding:10px 0}.detailfacts dt{color:var(--muted);font-size:11px}.detailfacts dd{margin:4px 0 0;font-size:14px;white-space:pre-line;overflow-wrap:anywhere}.gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:12px 0 24px}.gallery a{display:block;background:#f2f4ef;border:1px solid var(--line);border-radius:7px;overflow:hidden}.gallery img{display:block;width:100%;height:240px;object-fit:contain}.adtext{white-space:pre-wrap;overflow-wrap:anywhere;background:#f6f7f2;border:1px solid var(--line);border-radius:8px;padding:20px;font:14px/1.65 "Segoe UI",sans-serif;user-select:text}.adtools{display:flex;align-items:center;gap:12px;margin:10px 0}.adtools button{padding:8px 14px;background:var(--green);color:white;border:0;border-radius:5px}.provenance{color:var(--muted);font-size:12px}.missing{color:#77552c;background:#faf3e6;padding:10px 14px;border-radius:7px}#copyStatus{font-size:12px}
+@media(min-width:1500px){.cards{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:900px){.headerinner{align-items:start}.summary{gap:18px}.stat{min-width:70px}.stat span{display:block;max-width:90px}.filters{grid-template-columns:repeat(2,minmax(0,1fr))}.detailfacts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){header{padding:22px 20px}.headerinner{display:block}.summary{margin-top:22px;justify-content:space-between}.stat strong{font-size:26px}.stat span{max-width:none;font-size:11px}main{padding:20px 16px 30px}.controls{padding:15px}.searchrow{flex-wrap:wrap}.searchrow label{flex-basis:100%}#reset{padding:7px 12px;font-size:12px}.tablebar{display:block}.viewtools{margin-top:14px;justify-content:space-between;gap:8px}.viewtools label{min-width:0;flex:1}.viewtoggle button{padding:10px}.cards{gap:16px}.cardphoto{height:230px}.dialogbody{padding:16px}.dialogheader{padding:15px}.dialogheader h2{font-size:20px}.detailfacts{gap:0 14px}.gallery{grid-template-columns:1fr}.gallery img{height:230px}.detailfacts dd{font-size:12px}}
+@media print{header{background:white;color:black;padding:0;border:0}.summary,header p,.controls,.viewtools,.cards,.tablehint,footer,main>details,dialog{display:none!important}main{padding:10px 0}#tableView[hidden]{display:block!important}.tablewrap{max-height:none;overflow:visible}th{position:static}table{font-size:8px}th,th:nth-child(3),th:nth-child(7){min-width:0}th button,td{padding:4px}td .detailbutton{display:none}body{background:white}}
+
+.managebar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:18px}.primarybutton{border:1px solid var(--green);background:var(--green);color:#fff;padding:10px 16px;border-radius:6px;font-weight:600;font-size:13px}.secondarybutton{border:1px solid #cbd5cd;background:#fff;padding:10px 14px;border-radius:6px;font-size:13px}.managebar p{flex:1;margin:0;font-size:12px;color:var(--muted);min-width:200px}button:disabled{opacity:.55;cursor:wait}.formgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}.formgrid input:disabled,#modelNote:disabled{background:#f1f2ed;color:var(--muted)}textarea{display:block;width:100%;margin-top:6px;padding:12px;border:1px solid #cbd5cd;border-radius:6px;font:14px/1.5 "Segoe UI",sans-serif;resize:vertical;color:var(--ink)}textarea:focus-visible{outline:3px solid #b58941;outline-offset:3px}.widefield{margin-top:18px}.photoqueue{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:12px;margin:14px 0}.queuedphoto{border:1px solid var(--line);border-radius:6px;padding:8px;min-width:0}.queuedphoto img{width:100%;height:100px;object-fit:contain;background:#f3f4ee}.queuedphoto p{margin:4px 0 8px;color:var(--muted);font-size:11px;overflow-wrap:anywhere}.phototools{display:flex;gap:4px}.phototools button{border:1px solid var(--line);border-radius:4px;background:#fff;padding:4px 7px;font-size:12px}.formactions{display:flex;align-items:center;gap:14px;position:sticky;bottom:0;padding:16px 0 0;background:#fff;margin-top:20px}.formactions p{margin:0;font-size:12px;white-space:pre-line}.formerror{color:#a13822}.formhint{color:var(--muted);font-size:12px}#localWarnings{white-space:pre-line;padding:12px 16px;border:1px solid #e3d9be;background:#faf6ea;border-radius:6px;margin-bottom:18px}
+@media(max-width:700px){.formgrid{grid-template-columns:repeat(2,minmax(0,1fr))}.formactions{flex-wrap:wrap}}
+@media(max-width:420px){.formgrid{grid-template-columns:1fr}}
+@media print{.managebar,#localWarnings{display:none!important}}
+.summary{flex-wrap:wrap;row-gap:12px}.quickstatus{display:flex;align-items:end;gap:14px;flex-wrap:wrap;margin:0 0 18px}.quickstatus label{min-width:200px;max-width:260px}.quickstatus span{font-size:12px;padding-bottom:10px}
+.cardlocation{display:flex;align-items:center;gap:5px;margin:6px 0 0;font-size:12px;font-weight:600;color:var(--green);overflow-wrap:anywhere}.cardlocation svg{width:14px;height:14px;flex-shrink:0}.cardlocation.unknownlocation{color:var(--muted);font-weight:400}
+.themebutton{border:1px solid #9ab5a4;border-radius:6px;background:transparent;color:#fff;padding:8px 12px;font-size:13px;white-space:nowrap}.themebutton:hover{background:#ffffff14}
+@media(max-width:600px){.themebutton{margin-top:18px}}
+@media print{.themebutton{display:none!important}}
+/* Donker thema */
+:root[data-theme="dark"]{color-scheme:dark;--ink:#e3e9e5;--muted:#9eaba4;--line:#2f3d38;--green:#7cc2a3;--paper:#121a17;--accent:#c4a168}
+[data-theme="dark"] header{background:#0d2019}
+[data-theme="dark"] input,[data-theme="dark"] select,[data-theme="dark"] textarea{background:#18221f;border-color:#3a4a44;color:var(--ink)}
+[data-theme="dark"] #search{background:#141d1a}
+[data-theme="dark"] #reset,[data-theme="dark"] .controls,[data-theme="dark"] .viewtoggle,[data-theme="dark"] .modelcard,[data-theme="dark"] .tablewrap,[data-theme="dark"] .secondarybutton,[data-theme="dark"] .phototools button,[data-theme="dark"] .formactions,[data-theme="dark"] dialog{background:#1a2420;border-color:var(--line);color:var(--ink)}
+[data-theme="dark"] .viewtoggle button[aria-pressed="true"],[data-theme="dark"] .primarybutton,[data-theme="dark"] .adtools button{background:#2f7a5d;border-color:#2f7a5d;color:#fff}
+[data-theme="dark"] .modelcard:hover{border-color:#4d6b5f;box-shadow:0 6px 22px #0006}
+[data-theme="dark"] .cardphoto,[data-theme="dark"] .gallery a,[data-theme="dark"] .queuedphoto img{background:#222d29}
+[data-theme="dark"] .photocount{background:#121a17;color:var(--ink)}
+[data-theme="dark"] .detailbutton{background:#20302a;border-color:#355045;color:var(--green)}
+[data-theme="dark"] .badge{background:#27322e;color:#b4c0b9}[data-theme="dark"] .online{background:#1f3d2a;color:#9bd5a5}[data-theme="dark"] .sold{background:#2c2c2a;color:#a9a9a2}[data-theme="dark"] .reserved{background:#3d321a;color:#e2c27a}
+[data-theme="dark"] th{background:#22302b;border-bottom-color:#3a4a44}
+[data-theme="dark"] td{border-bottom-color:#26332e}
+[data-theme="dark"] tbody tr:nth-child(even){background:#1d2824}[data-theme="dark"] tbody tr:hover{background:#243530}
+[data-theme="dark"] .unknown{color:#7f8c85}[data-theme="dark"] .note{color:#d8b27c}
+[data-theme="dark"] #empty{border-color:#3a4a44}
+[data-theme="dark"] #unmatchedSection,[data-theme="dark"] #localWarnings,[data-theme="dark"] .missing{background:#2a2518;border-color:#4a412a;color:#e5cf9f}
+[data-theme="dark"] .adtext{background:#151e1b}
+[data-theme="dark"] .formgrid input:disabled,[data-theme="dark"] #modelNote:disabled{background:#202925}
+[data-theme="dark"] .formerror{color:#f08f78}
+[data-theme="dark"] .dangerbutton{background:#2e1a15;border-color:#6b3a2e;color:#f0a08c}
+[data-theme="dark"] dialog::backdrop{background:#000c}
+.dangerbutton{border:1px solid #d6b7ae;background:#fff7f3;color:#943d29;padding:10px 14px;border-radius:6px;font-size:13px}.trashrow{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0;border-bottom:1px solid var(--line)}.trashrow span{overflow-wrap:anywhere}.trashrow button{flex-shrink:0}
+</style>
+</head>
+<body>
+<header><div class="headerinner"><div><div class="eyebrow">Privécollectie · Auto's</div><h1>Schaalmodellen</h1><p>De collectie in beeld. Elk model, elk detail.</p></div>
+<div class="summary"><div class="stat"><strong id="total">—</strong><span>modellen</span></div><div class="stat"><strong id="brands">—</strong><span>automerken</span></div><div class="stat"><strong id="online">—</strong><span id="onlineLabel">zoekertjes online</span></div><div class="stat"><strong id="reservedCount">—</strong><span id="reservedLabel">gereserveerd</span></div><div class="stat"><strong id="soldCount">—</strong><span id="soldLabel">verkocht</span></div><div class="stat"><strong id="collectionValue">—</strong><span id="valueLabel">waarde, excl. verkocht</span></div></div><button id="themeToggle" type="button" class="themebutton"></button></div></header>
+<main>
+<div class="managebar"><button id="addModel" type="button" class="primarybutton">+ Model toevoegen</button><button id="openTrash" type="button" class="secondarybutton">Prullenbak</button><button id="refreshExcel" type="button" class="secondarybutton" hidden>Excel opnieuw inlezen</button><p id="appStatus" role="status" aria-live="polite">Voor toevoegen en bewerken: open Start inventaris.cmd.</p></div>
+<div id="localWarnings" hidden role="status"></div>
+<section class="controls" aria-label="Zoeken en filteren"><div class="searchrow"><label>Zoeken in alle gegevens<input id="search" type="search" placeholder="Bijvoorbeeld Ford, Kyosho, 1:18 of artikelnummer…" autocomplete="off"></label><button id="reset" type="button">Wis filters</button></div><details class="filterdetails"><summary>Filters <span id="filterCount"></span></summary><div class="filters" id="filters"></div><label class="mediafilter">Foto's en zoekertjes<select id="mediaFilter"><option value="">Alle registraties</option><option value="photos">Met foto's</option><option value="ad">Met zoekertjestekst</option><option value="both">Met foto's en zoekertjestekst</option><option value="none">Zonder foto’s of tekst</option></select></label></details></section>
+<div class="tablebar"><div class="resultgroup"><h2>De collectie</h2><strong id="result" role="status" aria-live="polite"></strong></div><div class="viewtools"><label>Sorteren op<select id="sortSelect" aria-label="Sorteren op"></select></label><button id="exportCsv" type="button" class="secondarybutton" title="Exporteer de getoonde modellen (zoeken, filters en sortering) als CSV">Exporteer CSV</button><div class="viewtoggle" role="group" aria-label="Weergave"><button id="cardsViewButton" type="button" aria-pressed="true" aria-controls="cards">Foto-overzicht</button><button id="tableViewButton" type="button" aria-pressed="false" aria-controls="tableView">Tabel</button></div></div></div>
+<div id="cards" class="cards" aria-label="Modellen met foto"></div>
+<div id="tableView" hidden><p class="tablehint"><span id="columnCount">Alle 15 kolommen</span> · klik op een kolomtitel om te sorteren · schuif horizontaal voor meer gegevens</p><div class="tablewrap" tabindex="0" role="region" aria-label="Inventaris met 15 kolommen"><table><caption style="position:absolute;clip-path:inset(50%);width:1px;height:1px;overflow:hidden">Inventaris van autoschaalmodellen</caption><thead><tr id="head"></tr></thead><tbody id="rows"></tbody></table></div></div>
+<div id="empty" hidden>Geen modellen gevonden. Pas de zoekterm of filters aan.</div>
+<footer><div id="updated"></div><div>Dit is een momentopname. Lege velden worden als ‘Onbekend’ getoond. Opmerkingen staan bij Conditie.</div><details><summary>Bron en bijwerken</summary><p id="source"></p><p>Na wijzigingen in Excel: sla Excel op, sluit het bestand en dubbelklik op <strong>Bijwerken.cmd</strong> in deze map. Vernieuw daarna deze pagina. Excel wordt uitsluitend gelezen. De pagina werkt offline en deelt geen gegevens.</p><p>Rijen met alleen een vooraf ingevuld nummer en schaal tellen niet als modellen.</p></details></footer>
+<details id="unmatchedSection" hidden><summary id="unmatchedTitle"></summary><p>Deze chats zijn niet automatisch aan één inventarisregel gekoppeld. Open de bronchat om de uitvoering te controleren.</p><ul class="unmatchedlist" id="unmatchedList"></ul></details>
+<dialog id="modelDialog" aria-labelledby="dialogTitle"><div class="dialogheader"><h2 id="dialogTitle"></h2><button type="button" id="closeDialog" aria-label="Detailvenster sluiten">Sluiten ×</button></div><div class="dialogbody"><div class="managebar"><button id="editModel" type="button" class="secondarybutton">Model bewerken</button><button id="deleteModel" type="button" class="dangerbutton">Model verwijderen</button><p id="recordOrigin"></p></div><div class="quickstatus"><label>Status zoekertje<select id="quickStatus"></select></label><span id="quickStatusMessage" role="status" aria-live="polite"></span></div><h3>Inventarisgegevens</h3><dl id="detailFacts" class="detailfacts"></dl><p class="provenance" id="chatSource"></p><div id="mediaNotice"></div><div class="gallery" id="gallery"></div><h3>Tekst voor het zoekertje</h3><p class="provenance">Controleer de vraagprijs en conditie voor publicatie; de tekst kan afwijken van de actuele inventaris.</p><div class="adtools"><button type="button" id="copyAd">Kopieer zoekertje</button><span id="copyStatus" role="status" aria-live="polite"></span></div><div class="adtext" id="adText" tabindex="0"></div></div></dialog>
+<dialog id="editDialog" aria-labelledby="editTitle"><div class="dialogheader"><h2 id="editTitle">Model toevoegen</h2><button type="button" id="closeEdit">Annuleren ×</button></div><form id="modelForm" class="dialogbody">
+<p id="editHint" class="formhint"></p><div id="modelFields" class="formgrid"></div>
+<label class="widefield">Opmerking<textarea id="modelNote" rows="2" maxlength="10000"></textarea></label>
+<h3>Foto’s</h3><p class="formhint">De eerste foto wordt in het overzicht getoond. Verplaats foto’s met de pijltjes. Maximaal 20 foto’s, 15 MB per foto.</p>
+<label>Foto’s toevoegen<input id="photoUpload" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple></label><div id="photoQueue" class="photoqueue"></div>
+<label class="widefield">Tekst voor het zoekertje<textarea id="modelAd" rows="12" maxlength="100000" placeholder="Plak hier de volledige tekst van het zoekertje…"></textarea></label>
+<div class="formactions"><button id="saveModel" type="submit" class="primarybutton">Model opslaan</button><p id="saveStatus" role="status" aria-live="polite"></p></div>
+</form></dialog>
+<dialog id="deleteDialog" aria-labelledby="deleteTitle"><div class="dialogheader"><h2 id="deleteTitle">Model verwijderen</h2><button type="button" id="cancelDelete">Annuleren ×</button></div><div class="dialogbody"><p id="deleteName"></p><p>Het model verdwijnt uit de collectie. Je kunt het later herstellen via de prullenbak. Foto’s en het Excel-bestand blijven bewaard.</p><div class="formactions"><button id="confirmDelete" type="button" class="dangerbutton">Verplaatsen naar prullenbak</button><p id="deleteStatus" role="status" aria-live="polite"></p></div></div></dialog>
+<dialog id="trashDialog" aria-labelledby="trashTitle"><div class="dialogheader"><h2 id="trashTitle">Prullenbak</h2><button type="button" id="closeTrash">Sluiten ×</button></div><div class="dialogbody"><p class="formhint">Herstel een model om het weer in de collectie te tonen. Een Excel-model wordt getoond als het nog in de ingelezen inventaris staat.</p><div id="trashList"></div><p id="trashStatus" role="status" aria-live="polite"></p></div></dialog>
+<noscript>Schakel JavaScript in om de inventaris te bekijken.</noscript>
+</main>
+<script id="inventory-data" type="application/json">__INVENTARIS_DATA__</script>
+<script>
+'use strict';
+const data=JSON.parse(document.getElementById('inventory-data').textContent);
+const themeToggle=document.getElementById('themeToggle');
+function applyTheme(theme){document.documentElement.dataset.theme=theme;const dark=theme==='dark';themeToggle.textContent=dark?'☀ Licht thema':'☾ Donker thema';themeToggle.setAttribute('aria-pressed',String(dark));themeToggle.title=dark?'Schakel naar licht thema':'Schakel naar donker thema';}
+applyTheme(document.documentElement.dataset.theme==='dark'?'dark':'light');
+themeToggle.addEventListener('click',()=>{const next=document.documentElement.dataset.theme==='dark'?'light':'dark';applyTheme(next);try{localStorage.setItem('inventaris-thema',next);}catch{}});
+const collator=new Intl.Collator('nl-BE',{numeric:true,sensitivity:'base'});
+const currency=new Intl.NumberFormat('nl-BE',{style:'currency',currency:'EUR',maximumFractionDigits:2});
+const fold=v=>String(v).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+const isUnknown=v=>String(v).trim().toLowerCase()==='onbekend';
+const filters=[];let sortColumn=0,sortDirection=1;
+let view='cards';
+function formatValue(value,index){return index>=11&&index<=13&&typeof value==='number'?currency.format(value):String(value);}
+function statusBadge(value){const badge=document.createElement('span');const status=fold(value).trim();badge.className='badge'+(status==='online'?' online':status==='verkocht'?' sold':status.includes('reserv')?' reserved':'');badge.textContent=isUnknown(value)?'Status onbekend':value;return badge;}
+// Kolommen die bij geen enkel model ingevuld zijn (nu: Doos) worden verborgen tot ze gevuld zijn. Formulier en CSV tonen ze wel.
+const hiddenColumns=new Set([10].filter(i=>data.records.length&&data.records.every(r=>isUnknown(r.values[i]))));
+const sortSelect=document.getElementById('sortSelect');
+data.headers.forEach((name,index)=>{if(hiddenColumns.has(index))return;for(const direction of [1,-1])sortSelect.add(new Option(name+(direction===1?' ↑':' ↓'),index+':'+direction));});
+sortSelect.addEventListener('change',()=>{[sortColumn,sortDirection]=sortSelect.value.split(':').map(Number);render();});
+function setView(next){view=next;document.getElementById('cards').hidden=view!=='cards';document.getElementById('tableView').hidden=view!=='table';document.getElementById('cardsViewButton').setAttribute('aria-pressed',String(view==='cards'));document.getElementById('tableViewButton').setAttribute('aria-pressed',String(view==='table'));}
+document.getElementById('cardsViewButton').addEventListener('click',()=>{setView('cards');saveViewState();});
+document.getElementById('tableViewButton').addEventListener('click',()=>{setView('table');saveViewState();});
+
+function selectRows(records,query,selected,column,direction){
+ const terms=fold(query).trim().split(/\s+/).filter(Boolean);
+ return records.filter(r=>terms.every(term=>fold(r.values.join(' ')+' '+r.note+' '+(r.extra?.ad||'')).includes(term))&&selected.every(f=>!f.value||String(r.values[f.index])===f.value)).sort((a,b)=>{
+ const x=a.values[column],y=b.values[column];
+ if(isUnknown(x)!==isUnknown(y))return isUnknown(x)?1:-1;
+ const order=typeof x==='number'&&typeof y==='number'?x-y:collator.compare(String(x),String(y));
+ return direction*order;
+ });
+}
+for(const [index,label] of [[1,'Automerk'],[4,'Fabrikant'],[6,'Conditie'],[7,'Schaal'],[9,'Locatie'],[10,'Doos'],[14,'Status zoekertje']]){
+ if(hiddenColumns.has(index))continue;
+ const wrapper=document.createElement('label');wrapper.textContent=label;
+ const select=document.createElement('select');select.setAttribute('aria-label',label);
+ select.add(new Option('Alle',''));
+ [...new Set(data.records.map(r=>String(r.values[index])))].sort(collator.compare).forEach(v=>select.add(new Option(v,v)));
+ wrapper.append(select);document.getElementById('filters').append(wrapper);filters.push({index,select});select.addEventListener('change',render);
+}
+data.headers.forEach((name,index)=>{const th=document.createElement('th');th.scope='col';const button=document.createElement('button');button.type='button';button.textContent=name;button.addEventListener('click',()=>{sortDirection=sortColumn===index?-sortDirection:1;sortColumn=index;render();});th.append(button);th.hidden=hiddenColumns.has(index);document.getElementById('head').append(th);});
+{const shown=data.headers.length-hiddenColumns.size;document.getElementById('columnCount').textContent=hiddenColumns.size?shown+' kolommen (lege kolom Doos verborgen)':'Alle '+shown+' kolommen';document.querySelector('.tablewrap').setAttribute('aria-label','Inventaris met '+shown+' kolommen');}
+function modelCard(record){
+ const v=record.values,photos=record.extra?.photos||[];
+ const card=document.createElement('article');card.className='modelcard';
+ const photo=document.createElement('button');photo.type='button';photo.className='cardphoto';photo.setAttribute('aria-label','Bekijk '+v[1]+' '+v[2]);photo.addEventListener('click',()=>openDetails(record));
+ if(photos.length){const img=document.createElement('img');img.src=photos[0];img.alt=v[1]+' '+v[2];img.loading='lazy';photo.append(img);const count=document.createElement('span');count.className='photocount';count.textContent=photos.length+" foto's";photo.append(count);}
+ else {const placeholder=document.createElement('span');placeholder.className='nophoto';placeholder.innerHTML='<svg viewBox="0 0 120 50" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 34V25l17-5 14-13h35l17 15 16 4 3 8H10Z"/><path d="M34 20h49L72 11H45Z"/><circle cx="30" cy="35" r="8" fill="var(--paper)"/><circle cx="92" cy="35" r="8" fill="var(--paper)"/></svg>Foto volgt';photo.append(placeholder);}
+ const body=document.createElement('div');body.className='cardbody';
+ const meta=document.createElement('div');meta.className='cardmeta';const nr=document.createElement('span');nr.textContent='Nr. '+v[0]+(record.origin==='local'?' · Pagina':' · Excel');meta.append(nr,statusBadge(v[14]));
+ const brand=document.createElement('div');brand.className='cardbrand';brand.textContent=v[1];
+ const title=document.createElement('h3');title.textContent=v[2];
+ const line=document.createElement('p');line.className='cardline';line.textContent=[v[3],v[4],v[7]].filter(value=>!isUnknown(value)).join(' · ')||'Details nog aan te vullen';
+ const location=document.createElement('p');location.className='cardlocation';location.innerHTML='<svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 14.5s-4.5-4.3-4.5-8A4.5 4.5 0 0 1 12.5 6.5c0 3.7-4.5 8-4.5 8Z"/><circle cx="8" cy="6.5" r="1.6"/></svg>';location.append(document.createTextNode(isUnknown(v[9])?'Locatie onbekend':'Locatie '+v[9]));if(isUnknown(v[9]))location.classList.add('unknownlocation');
+ const bottom=document.createElement('div');bottom.className='cardbottom';
+ const price=document.createElement('div');price.className='cardprice';const priceLabel=document.createElement('span');priceLabel.className='pricelabel';priceLabel.textContent='Zonder doos';price.append(priceLabel,document.createTextNode(isUnknown(v[11])?'Prijs onbekend':formatValue(v[11],11)));
+ const button=document.createElement('button');button.type='button';button.className='detailbutton';button.textContent='Bekijk model →';button.addEventListener('click',()=>openDetails(record));bottom.append(price,button);
+ body.append(meta,brand,title,line,location,bottom);card.append(photo,body);return card;
+}
+function currentResults(){
+ const media=document.getElementById('mediaFilter').value;
+ const candidates=data.records.filter(r=>{const photos=!!r.extra?.photos?.length,ad=!!r.extra?.ad;return !media||media==='photos'&&photos||media==='ad'&&ad||media==='both'&&photos&&ad||media==='none'&&!photos&&!ad;});
+ return selectRows(candidates,document.getElementById('search').value,filters.map(f=>({index:f.index,value:f.select.value})),sortColumn,sortDirection);
+}
+// CSV voor Excel (nl-BE): puntkomma als scheiding, komma als decimaalteken, UTF-8 met BOM.
+function exportCsv(){
+ const cell=v=>{const s=String(v??'');return /[";\r\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;};
+ const value=(v,i)=>i>=11&&i<=13&&typeof v==='number'?v.toFixed(2).replace('.',','):v;
+ const lines=[[...data.headers,'Opmerking'].map(cell).join(';')];
+ for(const r of currentResults())lines.push([...r.values.map(value),r.note||''].map(cell).join(';'));
+ const blob=new Blob(['﻿'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});
+ const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='schaalmodellen-'+new Date().toISOString().slice(0,10)+'.csv';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+document.getElementById('exportCsv').addEventListener('click',exportCsv);
+// Zoekterm, filters, sortering en weergave onthouden in deze browser (ook na opslaan of vernieuwen).
+const VIEW_KEY='inventaris-weergave';
+function saveViewState(){try{localStorage.setItem(VIEW_KEY,JSON.stringify({search:document.getElementById('search').value,media:document.getElementById('mediaFilter').value,filters:Object.fromEntries(filters.map(f=>[f.index,f.select.value])),sortColumn,sortDirection,view}));}catch{}}
+function restoreViewState(){
+ let state=null;try{state=JSON.parse(localStorage.getItem(VIEW_KEY));}catch{}
+ if(!state||typeof state!=='object')return;
+ const hasOption=(select,value)=>[...select.options].some(o=>o.value===value);
+ if(typeof state.search==='string')document.getElementById('search').value=state.search;
+ const media=document.getElementById('mediaFilter');if(hasOption(media,state.media))media.value=state.media;
+ for(const f of filters){const value=state.filters?.[f.index];if(typeof value==='string'&&hasOption(f.select,value))f.select.value=value;}
+ if(Number.isInteger(state.sortColumn)&&state.sortColumn>=0&&state.sortColumn<data.headers.length&&!hiddenColumns.has(state.sortColumn)&&(state.sortDirection===1||state.sortDirection===-1)){sortColumn=state.sortColumn;sortDirection=state.sortDirection;}
+ if(state.view==='table'||state.view==='cards')setView(state.view);
+ if(filters.some(f=>f.select.value)||media.value)document.querySelector('.filterdetails').open=true;
+}
+function render(){
+ const media=document.getElementById('mediaFilter').value;
+ const results=currentResults();saveViewState();
+ document.getElementById('result').textContent=`${results.length} van ${data.records.length} modellen`;
+ document.getElementById('empty').hidden=results.length!==0;
+ sortSelect.value=sortColumn+':'+sortDirection;
+ const activeFilters=filters.filter(f=>f.select.value).length+(media?1:0);
+ document.getElementById('filterCount').textContent=activeFilters?'('+activeFilters+' actief)':'';
+ document.getElementById('cards').replaceChildren(...results.map(modelCard));
+ const fragment=document.createDocumentFragment();
+ for(const record of results){const tr=document.createElement('tr');record.values.forEach((value,i)=>{const td=document.createElement('td');td.hidden=hiddenColumns.has(i);if(isUnknown(value))td.classList.add('unknown');
+ if(i>=11&&i<=13){td.classList.add('price');td.textContent=typeof value==='number'?currency.format(value):value;}
+ else if(i===14){const badge=document.createElement('span');badge.className='badge'+(fold(value)==='online'?' online':fold(value)==='verkocht'?' sold':'');badge.textContent=value;td.append(badge);}
+ else td.textContent=value;
+ if(i===2){const button=document.createElement('button');button.type='button';button.className='detailbutton';button.textContent='Bekijk model →';button.addEventListener('click',()=>openDetails(record));td.append(button);}
+ if(i===6&&record.note){const note=document.createElement('span');note.className='note';note.textContent=record.note;td.append(note);}tr.append(td);});fragment.append(tr);}
+ document.getElementById('rows').replaceChildren(fragment);
+ [...document.getElementById('head').children].forEach((th,i)=>{if(i===sortColumn)th.setAttribute('aria-sort',sortDirection===1?'ascending':'descending');else th.removeAttribute('aria-sort');th.firstChild.textContent=data.headers[i]+(i===sortColumn?(sortDirection===1?' ↑':' ↓'):' ↕');});
+}
+document.getElementById('search').addEventListener('input',render);
+document.getElementById('reset').addEventListener('click',()=>{document.getElementById('search').value='';document.getElementById('mediaFilter').value='';filters.forEach(f=>f.select.value='');sortColumn=0;sortDirection=1;render();});
+document.getElementById('mediaFilter').addEventListener('change',render);
+let activeAd='',activeRecord=null;
+function openDetails(record){
+ activeRecord=record;
+ document.getElementById('recordOrigin').textContent=record.origin==='local'?'Toegevoegd via de pagina.':record.locallyEdited?'Uit Excel, met aanpassingen via de pagina.':'Inventarisgegevens uit Excel.';
+ document.getElementById('editModel').textContent='Model bewerken';
+ const extra=record.extra||{photos:[],ad:''};activeAd=extra.ad||'';
+ const facts=document.getElementById('detailFacts');facts.replaceChildren();
+ record.values.forEach((value,index)=>{if(hiddenColumns.has(index))return;const group=document.createElement('div');const label=document.createElement('dt');label.textContent=data.headers[index];const entry=document.createElement('dd');entry.textContent=formatValue(value,index);group.append(label,entry);facts.append(group);});
+ if(record.note){const group=document.createElement('div');const label=document.createElement('dt');label.textContent='Opmerking';const entry=document.createElement('dd');entry.textContent=record.note;group.append(label,entry);facts.append(group);}
+ document.getElementById('dialogTitle').textContent=record.values[1]+' · '+record.values[2];
+ const source=document.getElementById('chatSource');source.replaceChildren();
+ const link=document.createElement('a');link.href='https://chatgpt.com/c/'+extra.chatId;link.target='_blank';link.rel='noopener';link.textContent='Bronchat: '+extra.chatTitle;if(extra.chatId)source.append(link);
+ const gallery=document.getElementById('gallery');gallery.replaceChildren();
+ (extra.photos||[]).forEach((photo,index)=>{const a=document.createElement('a');a.href=photo;a.target='_blank';a.rel='noopener';const img=document.createElement('img');img.src=photo;img.alt=record.values[1]+' '+record.values[2]+' · foto '+(index+1);img.loading='lazy';a.append(img);gallery.append(a);});
+ const notice=document.getElementById('mediaNotice');notice.textContent=extra.photos?.length?'Klik op een foto om het origineel te openen.':'Nog geen foto’s beschikbaar voor dit model.';notice.className=extra.photos?.length?'provenance':'missing';
+ document.getElementById('adText').textContent=activeAd||'Nog geen zoekertjestekst beschikbaar.';
+ document.getElementById('copyAd').hidden=!activeAd;document.getElementById('copyStatus').textContent='';
+ const quick=document.getElementById('quickStatus'),quickMessage=document.getElementById('quickStatusMessage');
+ fillChoices(quick,14,record.values[14]);quick.value=isUnknown(record.values[14])?'':String(record.values[14]);quick.disabled=!appConfig;
+ quickMessage.className='formhint';quickMessage.textContent=appConfig?'Wijziging wordt meteen opgeslagen.':'Open Start inventaris.cmd om de status te wijzigen.';
+ document.getElementById('modelDialog').showModal();
+}
+// Snel de status wijzigen: bewaart hetzelfde als het formulier, met alleen de status aangepast.
+document.getElementById('quickStatus').addEventListener('change',async event=>{
+ const quick=event.target,message=document.getElementById('quickStatusMessage'),record=activeRecord;if(!appConfig||!record)return;
+ const values=['',...record.values.slice(1).map(v=>v==null||isUnknown(v)?'':String(v))];values[14]=quick.value;
+ const body=new FormData();body.append('metadata',JSON.stringify({id:String(record.values[0]),requestId:crypto.randomUUID(),identity:record.values.slice(1,6),values,note:record.note||'',ad:record.extra?.ad||'',photos:(record.extra?.photos||[]).map(path=>({path}))}));
+ quick.disabled=true;message.className='formhint';message.textContent='Status opslaan…';
+ try{await appPost('/api/models',body);message.textContent='Opgeslagen. De collectie wordt vernieuwd…';location.reload();}
+ catch(error){message.textContent=error.message;message.className='formerror';quick.value=isUnknown(record.values[14])?'':String(record.values[14]);quick.disabled=false;}
+});
+document.getElementById('closeDialog').addEventListener('click',()=>document.getElementById('modelDialog').close());
+document.getElementById('copyAd').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(activeAd);document.getElementById('copyStatus').textContent='Zoekertje gekopieerd.';}catch{const range=document.createRange();range.selectNodeContents(document.getElementById('adText'));const selection=window.getSelection();selection.removeAllRanges();selection.addRange(range);document.getElementById('copyStatus').textContent='Tekst geselecteerd. Druk op Ctrl+C om te kopiëren.';}});
+if(data.unmatched?.length){document.getElementById('unmatchedSection').hidden=false;document.getElementById('unmatchedTitle').textContent=data.unmatched.length+' chats nog niet eenduidig gekoppeld';data.unmatched.forEach(chat=>{const li=document.createElement('li');const a=document.createElement('a');a.href='https://chatgpt.com/c/'+chat.id;a.target='_blank';a.rel='noopener';a.textContent=chat.title;li.append(a);document.getElementById('unmatchedList').append(li);});}
+document.getElementById('total').textContent=data.records.length;
+document.getElementById('brands').textContent=new Set(data.records.map(r=>r.values[1]).filter(v=>!isUnknown(v))).size;
+{// Totalen op basis van de vraagprijs zonder doos (zoals op de kaarten).
+ const euro=new Intl.NumberFormat('nl-BE',{style:'currency',currency:'EUR',maximumFractionDigits:0});
+ const status=r=>fold(r.values[14]).trim(),price=r=>typeof r.values[11]==='number'?r.values[11]:0;
+ const group=test=>{const rows=data.records.filter(test);return {count:rows.length,sum:rows.reduce((t,r)=>t+price(r),0),noPrice:rows.filter(r=>typeof r.values[11]!=='number').length};};
+ const online=group(r=>status(r)==='online'),reserved=group(r=>status(r).includes('reserv')),sold=group(r=>status(r)==='verkocht'),unsold=group(r=>status(r)!=='verkocht');
+ const missing=g=>g.noPrice?' ('+g.noPrice+' zonder prijs niet meegeteld)':'';
+ const set=(id,labelId,g,label)=>{document.getElementById(id).textContent=g.count;document.getElementById(labelId).textContent=label+' · '+euro.format(g.sum);document.getElementById(labelId).parentElement.title=g.count+' modellen, samen '+euro.format(g.sum)+' zonder doos'+missing(g);};
+ set('online','onlineLabel',online,'online');set('reservedCount','reservedLabel',reserved,'gereserveerd');set('soldCount','soldLabel',sold,'verkocht');
+ document.getElementById('collectionValue').textContent=euro.format(unsold.sum);
+ document.getElementById('collectionValue').parentElement.title='Som van de vraagprijs zonder doos van '+unsold.count+' niet-verkochte modellen'+missing(unsold);
+}
+document.getElementById('updated').textContent='Gegevens ingelezen op '+new Intl.DateTimeFormat('nl-BE',{dateStyle:'long',timeStyle:'short',timeZone:'Europe/Brussels'}).format(new Date(data.updated));
+document.getElementById('source').textContent='Excelbron: '+data.source+' · Werkblad Inventaris. Via de pagina toegevoegde modellen worden apart bewaard.';
+restoreViewState();render();
+
+// Opslaan verloopt via de lokale Python-app; index.html blijft ook los leesbaar.
+let appConfig=null,editingRecord=null,photoItems=[],requestId='';
+const editDialog=document.getElementById('editDialog'),modelForm=document.getElementById('modelForm');
+const modelInputs=[];
+// Keuzelijsten: vaste waarden aangevuld met waarden die al in de inventaris voorkomen.
+const choiceFields={6:['Nieuw','Als nieuw','Zeer goed','Goed','Redelijk','Beschadigd'],14:['Nog te plaatsen','Online','Gereserveerd','Verkocht']};
+function fillChoices(select,index,current=''){
+ const values=[...choiceFields[index]];
+ for(const v of data.records.map(r=>String(r.values[index])))if(!isUnknown(v)&&!values.includes(v))values.push(v);
+ if(current&&!isUnknown(current)&&!values.includes(String(current)))values.push(String(current));
+ select.replaceChildren(new Option('Onbekend',''),...values.map(v=>new Option(v,v)));
+}
+data.headers.slice(1).forEach((name,offset)=>{const index=offset+1,label=document.createElement('label');
+ if(choiceFields[index]){const select=document.createElement('select');select.id='modelField'+index;fillChoices(select,index);label.textContent=name;label.append(select);document.getElementById('modelFields').append(label);modelInputs.push(select);return;}
+ const input=document.createElement('input');label.textContent=name+(index===1||index===2?' *':'');input.id='modelField'+index;input.required=index===1||index===2;input.maxLength=10000;if(index>=11&&index<=13){input.type='number';input.min='0';input.step='0.01';}else input.type='text';label.append(input);document.getElementById('modelFields').append(label);modelInputs.push(input);});
+async function connectApp(){
+ if(location.protocol!=='http:'||location.hostname!=='127.0.0.1')return;
+ try{const response=await fetch('/api/config');if(!response.ok)throw Error();appConfig=await response.json();if(data.localRevision&&data.localRevision!==appConfig.revision){location.reload();return;}document.getElementById('appStatus').textContent='Lokaal opslaan actief · Excel en paginamodellen samen in één collectie.';document.getElementById('refreshExcel').hidden=false;}
+ catch{document.getElementById('appStatus').textContent='Geen verbinding met de lokale app. Open Start inventaris.cmd.';}
+}
+function requireApp(){if(appConfig)return true;document.getElementById('appStatus').textContent='Open Start inventaris.cmd in de projectmap om modellen toe te voegen of te bewerken.';return false;}
+function clearPhotoItems(){for(const item of photoItems)if(item.preview)URL.revokeObjectURL(item.preview);photoItems=[];}
+function renderPhotoQueue(){
+ const queue=document.getElementById('photoQueue');queue.replaceChildren();
+ photoItems.forEach((item,index)=>{const card=document.createElement('div');card.className='queuedphoto';const img=document.createElement('img');img.src=item.path||item.preview;img.alt='Foto '+(index+1);const label=document.createElement('p');label.textContent=(index===0?'Hoofdfoto · ':'')+(item.file?.name||'Foto '+(index+1));const tools=document.createElement('div');tools.className='phototools';
+ for(const [caption,delta] of [['←',-1],['→',1],['Verwijder',0]]){const button=document.createElement('button');button.type='button';button.textContent=caption;button.setAttribute('aria-label',delta===0?'Verwijder foto '+(index+1):'Verplaats foto '+(index+1)+(delta===-1?' naar voren':' naar achteren'));button.disabled=delta!==0&&(index+delta<0||index+delta>=photoItems.length);button.addEventListener('click',()=>{if(delta===0){if(item.preview)URL.revokeObjectURL(item.preview);photoItems.splice(index,1);}else [photoItems[index],photoItems[index+delta]]=[photoItems[index+delta],photoItems[index]];renderPhotoQueue();});tools.append(button);}
+ card.append(img,label,tools);queue.append(card);});
+}
+function startEdit(record=null){
+ if(!requireApp())return;
+ editingRecord=record;requestId=crypto.randomUUID();modelForm.reset();clearPhotoItems();
+ const excel=record&&record.origin!=='local';
+ document.getElementById('editTitle').textContent=record?'Model bewerken':'Model toevoegen';
+ document.getElementById('editHint').textContent=excel?'Je kunt alle gegevens, foto’s en tekst aanpassen. Wijzigingen via de pagina blijven behouden bij het opnieuw inlezen van Excel. Excel zelf blijft ongewijzigd.':'Vul minstens automerk en model in. Het modelnummer wordt automatisch toegekend. Deze registratie blijft bewaard wanneer je Excel opnieuw inleest.';
+ modelInputs.forEach((input,offset)=>{const value=record?.values[offset+1];if(input.tagName==='SELECT')fillChoices(input,offset+1,value??'');input.value=value==null||isUnknown(value)?'':value;input.disabled=false;input.required=!excel&&(offset===0||offset===1);});
+ if(!record)modelInputs[6].value='1:18';
+ document.getElementById('modelNote').value=record?.note||'';document.getElementById('modelNote').disabled=false;
+ document.getElementById('modelAd').value=record?.extra?.ad||'';
+ photoItems=(record?.extra?.photos||[]).map(path=>({path}));renderPhotoQueue();
+ document.getElementById('saveStatus').textContent='';document.getElementById('saveStatus').className='';
+ if(document.getElementById('modelDialog').open)document.getElementById('modelDialog').close();editDialog.showModal();
+}
+document.getElementById('addModel').addEventListener('click',()=>startEdit());
+document.getElementById('editModel').addEventListener('click',()=>startEdit(activeRecord));
+document.getElementById('closeEdit').addEventListener('click',()=>{if(!document.getElementById('saveModel').disabled)editDialog.close();});
+editDialog.addEventListener('cancel',event=>{if(document.getElementById('saveModel').disabled)event.preventDefault();});
+editDialog.addEventListener('close',clearPhotoItems);
+document.getElementById('photoUpload').addEventListener('change',event=>{
+ const files=[...event.target.files],status=document.getElementById('saveStatus');
+ if(photoItems.length+files.length>20){status.textContent='Je kunt maximaal 20 foto’s bewaren.';status.className='formerror';event.target.value='';return;}
+ if(files.some(file=>file.size>15*1024*1024||!['image/jpeg','image/png','image/webp','image/gif'].includes(file.type))){status.textContent='Gebruik JPG, PNG, WebP of GIF van maximaal 15 MB per foto.';status.className='formerror';event.target.value='';return;}
+ photoItems.push(...files.map(file=>({file,preview:URL.createObjectURL(file)})));event.target.value='';status.textContent='';renderPhotoQueue();
+});
+async function appPost(path,body){
+ const response=await fetch(path,{method:'POST',headers:{'X-Inventaris-Token':appConfig.token,'X-Inventaris-Revision':appConfig.revision,...(typeof body==='string'?{'Content-Type':'application/json'}:{})},body});
+ const result=await response.json();if(!response.ok)throw Error(result.error||'Opslaan is niet gelukt.');return result;
+}
+modelForm.addEventListener('submit',async event=>{
+ event.preventDefault();if(!requireApp()||document.getElementById('saveModel').disabled)return;
+ const button=document.getElementById('saveModel'),status=document.getElementById('saveStatus');button.disabled=true;document.getElementById('closeEdit').disabled=true;status.className='';status.textContent='Model en foto’s opslaan…';
+ // Vergrendel de invoer tijdens uploaden zodat wijzigingen niet verloren gaan.
+ const controls=[...modelForm.querySelectorAll('input,select,textarea,button')];const disabledBefore=controls.map(control=>control.disabled);controls.forEach(control=>control.disabled=true);
+ try{const body=new FormData();const photos=photoItems.map((item,index)=>{if(item.path)return {path:item.path};const name='photo_'+index;body.append(name,item.file);return {upload:name};});
+ const metadata={id:editingRecord?String(editingRecord.values[0]):'',requestId,identity:editingRecord?.values.slice(1,6),values:['',...modelInputs.map(input=>input.value)],note:document.getElementById('modelNote').value,ad:document.getElementById('modelAd').value,photos};body.append('metadata',JSON.stringify(metadata));
+ await appPost('/api/models',body);status.textContent='Opgeslagen. De collectie wordt vernieuwd…';location.reload();}
+ catch(error){status.textContent=error.message;status.className='formerror';controls.forEach((control,index)=>control.disabled=disabledBefore[index]);button.disabled=false;document.getElementById('closeEdit').disabled=false;}
+});
+document.getElementById('refreshExcel').addEventListener('click',async()=>{
+ if(!requireApp())return;const button=document.getElementById('refreshExcel'),status=document.getElementById('appStatus');button.disabled=true;status.textContent='Excel opnieuw inlezen…';
+ try{await appPost('/api/refresh',null);location.reload();}catch(error){status.textContent=error.message;button.disabled=false;}
+});
+if(data.localWarnings?.length){document.getElementById('localWarnings').hidden=false;document.getElementById('localWarnings').textContent=data.localWarnings.join('\n');}
+
+let deleteTarget=null;
+const deleteDialog=document.getElementById('deleteDialog'),trashDialog=document.getElementById('trashDialog');
+document.getElementById('openTrash').textContent='Prullenbak'+(data.trash?.length?' ('+data.trash.length+')':'');
+document.getElementById('deleteModel').addEventListener('click',()=>{
+ if(!requireApp()||!activeRecord)return;deleteTarget=activeRecord;
+ document.getElementById('deleteName').textContent='Nr. '+deleteTarget.values[0]+' · '+deleteTarget.values[1]+' '+deleteTarget.values[2];
+ document.getElementById('deleteStatus').textContent='';document.getElementById('deleteStatus').className='';
+ document.getElementById('modelDialog').close();deleteDialog.showModal();
+});
+document.getElementById('cancelDelete').addEventListener('click',()=>{if(!document.getElementById('confirmDelete').disabled)deleteDialog.close();});
+deleteDialog.addEventListener('cancel',event=>{if(document.getElementById('confirmDelete').disabled)event.preventDefault();});
+document.getElementById('confirmDelete').addEventListener('click',async()=>{
+ const button=document.getElementById('confirmDelete'),status=document.getElementById('deleteStatus');if(!requireApp()||!deleteTarget||button.disabled)return;
+ button.disabled=true;document.getElementById('cancelDelete').disabled=true;status.textContent='Model verplaatsen…';
+ try{await appPost('/api/models/delete',JSON.stringify({id:String(deleteTarget.values[0]),identity:deleteTarget.values.slice(1,6)}));location.reload();}
+ catch(error){status.textContent=error.message;status.className='formerror';button.disabled=false;document.getElementById('cancelDelete').disabled=false;}
+});
+document.getElementById('openTrash').addEventListener('click',()=>{
+ if(!requireApp())return;const list=document.getElementById('trashList');list.replaceChildren();document.getElementById('trashStatus').textContent='';
+ if(!data.trash?.length){const empty=document.createElement('p');empty.textContent='De prullenbak is leeg.';list.append(empty);}
+ for(const item of data.trash||[]){const row=document.createElement('div');row.className='trashrow';const label=document.createElement('span');label.textContent=item.title+' · Nr. '+item.id;const button=document.createElement('button');button.type='button';button.className='secondarybutton';button.textContent='Herstellen';button.addEventListener('click',async()=>{
+ const controls=[...list.querySelectorAll('button')],status=document.getElementById('trashStatus');controls.forEach(control=>control.disabled=true);document.getElementById('closeTrash').disabled=true;status.className='';status.textContent='Model herstellen…';
+ try{await appPost('/api/models/restore',JSON.stringify({id:item.id,origin:item.origin}));location.reload();}
+ catch(error){status.textContent=error.message;status.className='formerror';controls.forEach(control=>control.disabled=false);document.getElementById('closeTrash').disabled=false;}
+ });row.append(label,button);list.append(row);}trashDialog.showModal();
+});
+document.getElementById('closeTrash').addEventListener('click',()=>trashDialog.close());
+trashDialog.addEventListener('cancel',event=>{if(document.getElementById('closeTrash').disabled)event.preventDefault();});
+
+connectApp();
+</script>
+</body></html>

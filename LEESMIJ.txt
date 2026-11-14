@@ -1,0 +1,137 @@
+SCHAALMODELLEN - LOKALE INVENTARIS
+
+Om alleen te bekijken kun je index.html met je browser openen.
+Om toe te voegen of te bewerken: dubbelklik op Start inventaris.cmd.
+De lokale app opent automatisch in je browser. Internet is niet nodig.
+Laat het appvenster open tijdens het werken; stoppen kan met Ctrl+C.
+De app gebruikt een eigen lokaal adres (standaard poort 18765). Is die poort
+bezet, dan kiest de app automatisch een vrije poort en opent het juiste adres.
+Zoeken doorzoekt alle 15 velden en de opmerkingen. Meerdere zoekwoorden
+moeten allemaal voorkomen. Filters kunnen gecombineerd worden.
+De pagina opent met een foto-overzicht. Klik op een foto of Bekijk model
+voor alle inventarisgegevens, foto's en zoekertjestekst.
+Open Filters om extra filters te kiezen. Het aantal actieve filters staat erbij.
+Via Tabel krijg je alle 15 kolommen. Zoeken, filters en sortering gelden voor
+beide weergaven. Sorteren kan via de keuzelijst of de kolomtitels in de tabel.
+Het foto-overzicht toont de vraagprijs zonder doos; alle prijzen staan bij de details.
+Exporteer CSV downloadt de getoonde modellen (na zoeken, filters en sortering)
+met alle 15 kolommen plus Opmerking. Het bestand opent direct in Excel
+(puntkomma als scheiding, komma als decimaalteken).
+In het formulier kies je Conditie en Status zoekertje uit een keuzelijst.
+Bovenaan staan totalen: aantal en waarde online, gereserveerd en verkocht,
+en de collectiewaarde zonder de verkochte modellen (vraagprijs zonder doos).
+Houd de muis op een getal voor uitleg, o.a. hoeveel modellen geen prijs hebben.
+In Bekijk model kun je de status van het zoekertje meteen wijzigen via de
+keuzelijst; dat wordt direct opgeslagen (alleen met Start inventaris.cmd).
+Zoekterm, filters, sortering en weergave worden in de browser onthouden.
+Wis filters zet zoeken, filters en sortering terug.
+Een kolom die bij geen enkel model is ingevuld (nu Doos) wordt in tabel,
+filters en details verborgen tot er een waarde in staat. CSV en formulier
+bevatten de kolom wel.
+Met de knop rechtsboven wissel je tussen licht en donker thema. De keuze
+wordt in de browser onthouden; zonder keuze volgt de pagina de Windows-instelling.
+
+MODELLEN TOEVOEGEN VIA DE PAGINA
+1. Start de app met Start inventaris.cmd.
+2. Klik op + Model toevoegen.
+3. Vul minstens automerk en model in. De andere gegevens zijn optioneel.
+4. Kies foto's en plak de volledige tekst voor het zoekertje.
+5. Zet de gewenste hoofdfoto vooraan met de pijltjes en klik Model opslaan.
+Een nieuw model krijgt automatisch een nummer dat begint met W-.
+Deze modellen kun je later via Bekijk model > Model bewerken aanpassen.
+
+BEWERKEN EN VERWIJDEREN
+Open Bekijk model en kies Model bewerken om de gegevens, opmerkingen,
+foto's en zoekertjestekst te wijzigen. Dit kan ook bij Excel-modellen.
+Het modelnummer blijft hetzelfde.
+Kies Model verwijderen en bevestig om het model naar de prullenbak te verplaatsen.
+Via Prullenbak bovenaan kun je modellen herstellen, inclusief hun foto's en tekst.
+Verwijderde modellen blijven na een Excel-update uit het overzicht weg.
+Foto's worden niet van de schijf gewist en Excel wordt niet gewijzigd.
+
+EXCEL EN PAGINA NAAST ELKAAR
+Je kunt Excel-modellen zowel in Excel als via de pagina bijwerken.
+Per veld hebben aanpassingen via de pagina voorrang. Andere velden worden
+bij het opnieuw inlezen bijgewerkt vanuit Excel.
+Na Excel-wijzigingen: opslaan, Excel sluiten en Excel opnieuw inlezen klikken.
+Bijwerken.cmd blijft ook bruikbaar. Beide manieren behouden de paginamodellen.
+Starten van de app gebruikt de laatst ingelezen Excel-gegevens; het leest
+Excel pas opnieuw wanneer je daarvoor kiest.
+
+De pagina schrijft niets terug naar Excel. Paginamodellen staan apart in
+lokale_modellen.json, samen met de pagina-aanpassingen en de prullenbak.
+Nieuwe foto's worden in fotos/web bewaard, in de gekozen volgorde.
+Bewaar deze bestanden en de bestaande aanvullingen.json en fotos samen.
+Ook wanneer Excel vergrendeld is, kun je paginamodellen opslaan.
+Als de identiteit van een Excel-model wijzigt, worden de daarvoor opgeslagen
+wijzigingen, foto's, teksten en verwijdering bewaard maar niet toegepast;
+de pagina toont een melding. Zo wordt een nieuw model met een hergebruikt
+Excel-nummer niet onbedoeld aangepast of verborgen.
+Er is geen automatische herkenning van dubbele modellen tussen beide bronnen.
+Voer hetzelfde model dus via één van beide routes in.
+Een foto verwijderen in het formulier verwijdert de koppeling; het lokale
+fotobestand blijft bewaard, zodat oudere verwijzingen niet worden beschadigd.
+
+NA WIJZIGINGEN IN EXCEL
+1. Sla Inventaris.xlsx op en sluit Excel.
+2. Dubbelklik op Bijwerken.cmd.
+3. Vernieuw index.html in de browser.
+
+Het programma gebruikt de Python-versie van Codex, of de Python-launcher
+indien die apart is geinstalleerd. Voor Parquet is pyarrow nodig.
+Eenmalig installeren: python -m pip install -r requirements.txt
+Bewaar bijwerken.py, server.py, inventaris.template.html en de cmd-bestanden samen.
+Bij een fout tijdens het inlezen blijft de vorige pagina behouden.
+
+BRON
+C:\Users\ntm556\OneDrive - De Stroomlijn\Geert Kril\Schaalmodellen\Inventaris.xlsx
+Werkblad: Inventaris. Dit bestand wordt uitsluitend gelezen.
+De pagina is een momentopname van de opgeslagen gegevens.
+
+PARQUET-EXPORT
+Bijwerken.cmd maakt ook inventaris.parquet in deze map.
+Dit bestand bevat alle oorspronkelijke kolommen van werkblad Inventaris,
+inclusief Opmerking, en alle rijen met celwaarden (ook vooraf ingevulde rijen).
+Lege cellen blijven null; ze worden niet vervangen door Onbekend.
+Numerieke kolommen blijven numeriek. Kolommen met zowel getallen als tekst
+worden tekst, zodat artikelnummers en afwijkende waarden behouden blijven.
+Excel-tijden en datums blijven hun onderliggende getal of ISO-tekst;
+opmaak wordt niet meegenomen. Formules leveren hun laatst opgeslagen resultaat.
+Foto's en chatteksten worden niet aan de Excel-export toegevoegd.
+Paginamodellen staan ook niet in deze export: Parquet blijft de Excel-bron weergeven.
+Bronpad, SHA256 en tijdstip zijn opgeslagen in de Parquet-metadata.
+
+WEERGAVE
+De 15 afgesproken inventariskolommen worden in de vaste volgorde getoond.
+De extra Excel-kolom Opmerking staat onder Conditie en is doorzoekbaar.
+Lege velden worden weergegeven als Onbekend. Prijzen als bedragen in euro.
+Een schaal die Excel als tijd bewaart (01:18) wordt getoond als 1:18.
+Rijen met uitsluitend nummer en standaardschaal worden overgeslagen.
+Gedeeltelijke registraties met bijvoorbeeld ook een locatie blijven zichtbaar.
+Benamingen en eventuele bestaande tekstfouten uit Excel worden behouden.
+
+De pagina werkt volledig lokaal: geen externe scripts, lettertypen of diensten.
+
+FOTO'S EN ZOEKERTJES
+Klik bij een model op de foto of Bekijk model.
+Het detailvenster bevat de lokaal opgeslagen foto's, de tekst voor het
+zoekertje en een kopieerknop. Klik op een foto voor het originele bestand.
+Als kopieren door de browser wordt geblokkeerd, wordt de tekst geselecteerd;
+druk dan op Ctrl+C. De link naar de bronchat vraagt wel internet.
+
+Met het extra filter kun je modellen met foto's en/of zoekertjes tonen.
+De 15 inventariskolommen zijn behouden. Niet eenduidig gekoppelde chats
+staan afzonderlijk onder de tabel. Hun foto's worden niet bij een model
+geplaatst zolang de koppeling onzeker is.
+
+De teksten zijn bestaande teksten uit de chats; opmaak en de vaste afsluiting
+zijn gelijkgetrokken en fabrikantvoorvoegsels uit de titel verwijderd.
+Controleer voor publicatie
+de vraagprijs, conditie en overige gegevens tegen de actuele inventaris.
+Bij sommige oudere chats waren de oorspronkelijke foto's niet toegankelijk.
+
+Bewaar aanvullingen.json en de map fotos samen met de pagina. Bijwerken.cmd
+leest Excel opnieuw en bewaart de gekoppelde foto's en teksten. Nieuwe chats
+worden niet automatisch opgehaald. Vraag daarvoor een nieuwe verwerking.
+Als merk/model/bouwjaar/fabrikant/artikelnummer in Excel veranderen, wordt
+de oude koppeling uit voorzorg niet toegepast tot ze opnieuw is gecontroleerd.

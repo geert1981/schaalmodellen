@@ -1,0 +1,14 @@
+# Persoonlijke inventarisgegevens (blijven lokaal / via OneDrive, niet in Git)
+/index.html
+/aanvullingen.json
+/lokale_modellen.json
+/inventaris.parquet
+/fotos/
+
+# Oude handmatige backup-mappen (vervangen door Git-geschiedenis)
+/backup-*/
+
+# Python / tooling
+__pycache__/
+*.pyc
+*.log
