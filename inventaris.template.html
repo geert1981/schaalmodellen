@@ -39,6 +39,7 @@ a.secondarybutton{display:inline-block;text-decoration:none;color:var(--ink)}
 .cardappt{display:flex;align-items:center;gap:5px;margin:4px 0 0;font-size:12px;font-weight:600;color:#89651d}.cardappt svg{width:14px;height:14px;flex-shrink:0}
 @media(max-width:700px){.apptgrid{grid-template-columns:1fr 1fr}.calday{min-height:64px;padding:3px}.calevent{font-size:10px;padding:2px 3px}.calnav h3{min-width:0;font-size:18px}.apptwhen{min-width:0}}
 [data-theme="dark"] .calhead{background:#22302b}[data-theme="dark"] .calday,[data-theme="dark"] .apptrow{background:#1a2420}[data-theme="dark"] .calday.other{background:#151d1a;color:#5f6b65}[data-theme="dark"] .calevent{background:#1f3d2a;color:#9bd5a5}[data-theme="dark"] .calevent.past{background:#2c2c2a;color:#a9a9a2}[data-theme="dark"] .cardappt{color:#e2c27a}
+.cardmeta>:only-child{margin-left:auto}.cardmeta select.cardstatus{display:inline-block;width:auto;max-width:100%;margin:0;padding:3px 6px;border:1px solid transparent;font-size:11px;cursor:pointer}.cardmeta select.cardstatus:hover{border-color:currentColor}
 .pricefilter{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;max-width:420px;margin-top:12px}
 .locationtools{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}.locationtools .tablehint{margin:0}
 .locationgroup{background:#fff;border:1px solid var(--line);border-radius:8px;margin-bottom:16px;overflow:hidden}.locationgroup h3{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:0;padding:12px 14px;font:600 17px "Segoe UI",sans-serif;color:var(--green);border-bottom:1px solid var(--line)}.locationgroup h3 span{font-size:12px;font-weight:400;color:var(--muted)}
@@ -166,7 +167,7 @@ function modelCard(record){
  if(photos.length){const img=document.createElement('img');const mini=thumbPath(photos[0]);img.src=mini||photos[0];if(mini)img.addEventListener('error',()=>{img.src=photos[0];},{once:true});img.alt=v[1]+' '+v[2];img.loading='lazy';photo.append(img);const count=document.createElement('span');count.className='photocount';count.textContent=photos.length+" foto's";photo.append(count);}
  else {const placeholder=document.createElement('span');placeholder.className='nophoto';placeholder.innerHTML='<svg viewBox="0 0 120 50" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 34V25l17-5 14-13h35l17 15 16 4 3 8H10Z"/><path d="M34 20h49L72 11H45Z"/><circle cx="30" cy="35" r="8" fill="var(--paper)"/><circle cx="92" cy="35" r="8" fill="var(--paper)"/></svg>Foto volgt';photo.append(placeholder);}
  const body=document.createElement('div');body.className='cardbody';
- const meta=document.createElement('div');meta.className='cardmeta';const nr=document.createElement('span');nr.textContent='Nr. '+v[0]+(record.origin==='local'?' · Pagina':' · Excel');meta.append(nr,statusBadge(v[14]));
+ const meta=document.createElement('div');meta.className='cardmeta';meta.append(appConfig?cardStatusSelect(record):statusBadge(v[14]));
  const brand=document.createElement('div');brand.className='cardbrand';brand.textContent=v[1];
  const title=document.createElement('h3');title.textContent=v[2];
  const line=document.createElement('p');line.className='cardline';line.textContent=[v[3],v[4],v[7]].filter(value=>!isUnknown(value)).join(' · ')||'Details nog aan te vullen';
@@ -287,14 +288,28 @@ function openDetails(record){
  document.getElementById('modelDialog').showModal();
 }
 // Snel de status wijzigen: bewaart hetzelfde als het formulier, met alleen de status aangepast.
+function saveStatus(record,value){
+ const values=['',...record.values.slice(1).map(v=>v==null||isUnknown(v)?'':String(v))];values[14]=value;
+ const body=new FormData();body.append('metadata',JSON.stringify({id:String(record.values[0]),requestId:crypto.randomUUID(),identity:record.values.slice(1,6),values,note:record.note||'',ad:record.extra?.ad||'',photos:(record.extra?.photos||[]).map(path=>({path}))}));
+ return appPost('/api/models',body);
+}
+const currentStatus=record=>isUnknown(record.values[14])?'':String(record.values[14]);
 document.getElementById('quickStatus').addEventListener('change',async event=>{
  const quick=event.target,message=document.getElementById('quickStatusMessage'),record=activeRecord;if(!appConfig||!record)return;
- const values=['',...record.values.slice(1).map(v=>v==null||isUnknown(v)?'':String(v))];values[14]=quick.value;
- const body=new FormData();body.append('metadata',JSON.stringify({id:String(record.values[0]),requestId:crypto.randomUUID(),identity:record.values.slice(1,6),values,note:record.note||'',ad:record.extra?.ad||'',photos:(record.extra?.photos||[]).map(path=>({path}))}));
  quick.disabled=true;message.className='formhint';message.textContent='Status opslaan…';
- try{await appPost('/api/models',body);message.textContent='Opgeslagen. De collectie wordt vernieuwd…';location.reload();}
- catch(error){message.textContent=error.message;message.className='formerror';quick.value=isUnknown(record.values[14])?'':String(record.values[14]);quick.disabled=false;}
+ try{await saveStatus(record,quick.value);message.textContent='Opgeslagen. De collectie wordt vernieuwd…';location.reload();}
+ catch(error){message.textContent=error.message;message.className='formerror';quick.value=currentStatus(record);quick.disabled=false;}
 });
+// Status rechtstreeks op de kaart wijzigen (alleen met de lokale app); slaat meteen op.
+function statusClass(value){const s=fold(value).trim();return s==='online'?' online':s==='verkocht'?' sold':s.includes('reserv')?' reserved':'';}
+function cardStatusSelect(record){
+ const select=document.createElement('select');fillChoices(select,14,record.values[14]);select.value=currentStatus(record);
+ select.className='cardstatus badge'+statusClass(record.values[14]);select.setAttribute('aria-label','Status zoekertje van '+record.values[1]+' '+record.values[2]);select.title='Status wijzigen (wordt meteen opgeslagen)';
+ select.addEventListener('change',async()=>{select.disabled=true;select.title='Status opslaan…';
+  try{await saveStatus(record,select.value);location.reload();}
+  catch(error){alert(error.message);select.value=currentStatus(record);select.disabled=false;select.title='Status wijzigen (wordt meteen opgeslagen)';}});
+ return select;
+}
 document.getElementById('closeDialog').addEventListener('click',()=>document.getElementById('modelDialog').close());
 document.getElementById('copyAd').addEventListener('click',async()=>{try{const plain=adPlain(activeAd);if(window.ClipboardItem&&navigator.clipboard.write){try{await navigator.clipboard.write([new ClipboardItem({'text/plain':new Blob([plain],{type:'text/plain'}),'text/html':new Blob([adHtml(activeAd)],{type:'text/html'})})]);}catch{await navigator.clipboard.writeText(plain);}}else await navigator.clipboard.writeText(plain);document.getElementById('copyStatus').textContent='Zoekertje gekopieerd.';}catch{const range=document.createRange();range.selectNodeContents(document.getElementById('adText'));const selection=window.getSelection();selection.removeAllRanges();selection.addRange(range);document.getElementById('copyStatus').textContent='Tekst geselecteerd. Druk op Ctrl+C om te kopiëren.';}});
 // ---- Afspraken met kopers, kalender en agenda-export ----
@@ -411,7 +426,7 @@ data.headers.slice(1).forEach((name,offset)=>{const index=offset+1,label=documen
  const input=document.createElement('input');label.textContent=name+(index===1||index===2?' *':'');input.id='modelField'+index;input.required=index===1||index===2;input.maxLength=10000;if(index>=11&&index<=13){input.type='number';input.min='0';input.step='0.01';}else input.type='text';label.append(input);document.getElementById('modelFields').append(label);modelInputs.push(input);});
 async function connectApp(){
  if(location.protocol!=='http:'||location.hostname!=='127.0.0.1')return;
- try{const response=await fetch('/api/config');if(!response.ok)throw Error();appConfig=await response.json();if(data.localRevision&&data.localRevision!==appConfig.revision){location.reload();return;}document.getElementById('appStatus').textContent='Lokaal opslaan actief · Excel en paginamodellen samen in één collectie.';document.getElementById('refreshExcel').hidden=false;}
+ try{const response=await fetch('/api/config');if(!response.ok)throw Error();appConfig=await response.json();if(data.localRevision&&data.localRevision!==appConfig.revision){location.reload();return;}document.getElementById('appStatus').textContent='Lokaal opslaan actief · Excel en paginamodellen samen in één collectie.';document.getElementById('refreshExcel').hidden=false;render();}
  catch{document.getElementById('appStatus').textContent='Geen verbinding met de lokale app. Open Start inventaris.cmd.';}
 }
 function requireApp(){if(appConfig)return true;document.getElementById('appStatus').textContent='Open Start inventaris.cmd in de projectmap om modellen toe te voegen of te bewerken.';return false;}
