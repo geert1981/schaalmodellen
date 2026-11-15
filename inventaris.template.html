@@ -97,6 +97,7 @@ a.secondarybutton{display:inline-block;text-decoration:none;color:var(--ink)}
 <dialog id="editDialog" aria-labelledby="editTitle"><div class="dialogheader"><h2 id="editTitle">Model toevoegen</h2><button type="button" id="closeEdit">Annuleren ×</button></div><form id="modelForm" class="dialogbody">
 <p id="editHint" class="formhint"></p><div id="modelFields" class="formgrid"></div>
 <label class="widefield">Opmerking<textarea id="modelNote" rows="2" maxlength="10000"></textarea></label>
+<label class="widefield">ChatGPT URL<input id="modelChatUrl" type="url" maxlength="2000" placeholder="https://chatgpt.com/c/…" autocomplete="off"></label>
 <h3>Foto’s</h3><p class="formhint">De eerste foto wordt in het overzicht getoond. Verplaats foto’s met de pijltjes. Maximaal 20 foto’s, 15 MB per foto.</p>
 <label>Foto’s toevoegen<input id="photoUpload" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple></label><div id="photoQueue" class="photoqueue"></div>
 <label class="widefield">Tekst voor het zoekertje<textarea id="modelAd" rows="12" maxlength="100000" placeholder="Plak hier de volledige tekst van het zoekertje…"></textarea></label>
@@ -160,6 +161,8 @@ for(const [index,label] of [[1,'Automerk'],[4,'Fabrikant'],[6,'Conditie'],[7,'Sc
 data.headers.forEach((name,index)=>{const th=document.createElement('th');th.scope='col';const button=document.createElement('button');button.type='button';button.textContent=name;button.addEventListener('click',()=>{sortDirection=sortColumn===index?-sortDirection:1;sortColumn=index;render();});th.append(button);th.hidden=hiddenColumns.has(index);document.getElementById('head').append(th);});
 {const shown=data.headers.length-hiddenColumns.size;document.getElementById('columnCount').textContent=hiddenColumns.size?shown+' kolommen (lege kolom Doos verborgen)':'Alle '+shown+' kolommen';document.querySelector('.tablewrap').setAttribute('aria-label','Inventaris met '+shown+' kolommen');}
 // Miniatuur voor het overzicht (zie miniaturen.py); ontbreekt die, dan valt de kaart terug op het origineel.
+// ChatGPT URL van een model: zelf ingevuld, anders afgeleid van de gekoppelde bronchat.
+function chatUrlOf(record){const e=record.extra||{};return e.chatUrl||(e.chatId?'https://chatgpt.com/c/'+e.chatId:'');}
 function thumbPath(photo){return typeof photo==='string'&&photo.startsWith('fotos/')&&!photo.startsWith('fotos/_mini/')?'fotos/_mini/'+photo.slice(6)+'.jpg':null;}
 function modelCard(record){
  const v=record.values,photos=record.extra?.photos||[];
@@ -214,8 +217,8 @@ function renderLocations(results){
 function exportCsv(){
  const cell=v=>{const s=String(v??'');return /[";\r\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;};
  const value=(v,i)=>i>=11&&i<=13&&typeof v==='number'?v.toFixed(2).replace('.',','):v;
- const lines=[[...data.headers,'Opmerking'].map(cell).join(';')];
- for(const r of currentResults())lines.push([...r.values.map(value),r.note||''].map(cell).join(';'));
+ const lines=[[...data.headers,'Opmerking','ChatGPT URL'].map(cell).join(';')];
+ for(const r of currentResults())lines.push([...r.values.map(value),r.note||'',chatUrlOf(r)].map(cell).join(';'));
  const blob=new Blob(['﻿'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});
  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='schaalmodellen-'+new Date().toISOString().slice(0,10)+'.csv';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 }
@@ -273,10 +276,12 @@ function openDetails(record){
  const extra=record.extra||{photos:[],ad:''};activeAd=extra.ad||'';
  const facts=document.getElementById('detailFacts');facts.replaceChildren();
  record.values.forEach((value,index)=>{if(hiddenColumns.has(index))return;const group=document.createElement('div');const label=document.createElement('dt');label.textContent=data.headers[index];const entry=document.createElement('dd');entry.textContent=formatValue(value,index);group.append(label,entry);facts.append(group);});
+ {const group=document.createElement('div');const label=document.createElement('dt');label.textContent='ChatGPT URL';const entry=document.createElement('dd');const url=chatUrlOf(record);
+  if(url){const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener';a.textContent=extra.chatTitle||'Open chat';a.title=url;entry.append(a);}else{entry.textContent='Onbekend';entry.classList.add('unknown');}group.append(label,entry);facts.append(group);}
  if(record.note){const group=document.createElement('div');const label=document.createElement('dt');label.textContent='Opmerking';const entry=document.createElement('dd');entry.textContent=record.note;group.append(label,entry);facts.append(group);}
  document.getElementById('dialogTitle').textContent=record.values[1]+' · '+record.values[2];
  const source=document.getElementById('chatSource');source.replaceChildren();
- const link=document.createElement('a');link.href='https://chatgpt.com/c/'+extra.chatId;link.target='_blank';link.rel='noopener';link.textContent='Bronchat: '+extra.chatTitle;if(extra.chatId)source.append(link);
+ 
  const gallery=document.getElementById('gallery');gallery.replaceChildren();
  (extra.photos||[]).forEach((photo,index)=>{const a=document.createElement('a');a.href=photo;a.target='_blank';a.rel='noopener';const img=document.createElement('img');img.src=photo;img.alt=record.values[1]+' '+record.values[2]+' · foto '+(index+1);img.loading='lazy';a.append(img);gallery.append(a);});
  const notice=document.getElementById('mediaNotice');notice.textContent=extra.photos?.length?'Klik op een foto om het origineel te openen.':'Nog geen foto’s beschikbaar voor dit model.';notice.className=extra.photos?.length?'provenance':'missing';
@@ -447,6 +452,7 @@ function startEdit(record=null){
  modelInputs.forEach((input,offset)=>{const value=record?.values[offset+1];if(input.tagName==='SELECT')fillChoices(input,offset+1,value??'');input.value=value==null||isUnknown(value)?'':value;input.disabled=false;input.required=!excel&&(offset===0||offset===1);});
  if(!record)modelInputs[6].value='1:18';
  document.getElementById('modelNote').value=record?.note||'';document.getElementById('modelNote').disabled=false;
+ document.getElementById('modelChatUrl').value=record?chatUrlOf(record):'';
  document.getElementById('modelAd').value=record?.extra?.ad||'';
  photoItems=(record?.extra?.photos||[]).map(path=>({path}));renderPhotoQueue();
  document.getElementById('saveStatus').textContent='';document.getElementById('saveStatus').className='';
@@ -473,7 +479,7 @@ modelForm.addEventListener('submit',async event=>{
  // Vergrendel de invoer tijdens uploaden zodat wijzigingen niet verloren gaan.
  const controls=[...modelForm.querySelectorAll('input,select,textarea,button')];const disabledBefore=controls.map(control=>control.disabled);controls.forEach(control=>control.disabled=true);
  try{const body=new FormData();const photos=photoItems.map((item,index)=>{if(item.path)return {path:item.path};const name='photo_'+index;body.append(name,item.file);return {upload:name};});
- const metadata={id:editingRecord?String(editingRecord.values[0]):'',requestId,identity:editingRecord?.values.slice(1,6),values:['',...modelInputs.map(input=>input.value)],note:document.getElementById('modelNote').value,ad:document.getElementById('modelAd').value,photos};body.append('metadata',JSON.stringify(metadata));
+ const metadata={id:editingRecord?String(editingRecord.values[0]):'',requestId,identity:editingRecord?.values.slice(1,6),values:['',...modelInputs.map(input=>input.value)],note:document.getElementById('modelNote').value,chatUrl:document.getElementById('modelChatUrl').value.trim(),ad:document.getElementById('modelAd').value,photos};body.append('metadata',JSON.stringify(metadata));
  await appPost('/api/models',body);status.textContent='Opgeslagen. De collectie wordt vernieuwd…';location.reload();}
  catch(error){status.textContent=error.message;status.className='formerror';controls.forEach((control,index)=>control.disabled=disabledBefore[index]);button.disabled=false;document.getElementById('closeEdit').disabled=false;}
 });

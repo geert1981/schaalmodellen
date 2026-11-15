@@ -7,6 +7,7 @@ from email.parser import BytesParser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import math
+import re
 from pathlib import Path
 import secrets
 import socket
@@ -132,6 +133,15 @@ def save_model(directory, metadata, uploads):
             extension = image_extension(upload)
             prepared.append(('fotos/web/' + uuid.uuid4().hex + extension, upload))
     extra = {'photos': [p for p, _ in prepared], 'ad': ad}
+    # ChatGPT URL: ontbreekt het veld in het verzoek, dan blijft de bestaande waarde behouden.
+    if 'chatUrl' in metadata:
+        chat_url = text(metadata.get('chatUrl'), 2000)
+        if chat_url and not re.fullmatch(r'https://\S+', chat_url):
+            raise ValueError('Vul een geldige ChatGPT URL in die begint met https://')
+    else:
+        chat_url = (existing or {}).get('extra', {}).get('chatUrl', '')
+    if chat_url:
+        extra['chatUrl'] = chat_url
     if origin == 'local':
         record = {'origin': 'local', 'values': values, 'note': note, 'extra': extra, 'requestId': (existing or {}).get('requestId', request_id)}
         local['models'] = [r for r in local['models'] if str(r['values'][0]) != key] + [record]

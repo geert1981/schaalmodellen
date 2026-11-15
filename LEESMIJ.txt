@@ -45,6 +45,11 @@ Miniaturen worden automatisch gemaakt bij het starten van de app, na opslaan
 en bij Bijwerken.cmd (vereist Pillow). Ontbreekt een miniatuur, dan toont de
 kaart gewoon het origineel. Handmatig alles aanmaken: python miniaturen.py
 
+CHATGPT URL
+Elk model heeft een veld ChatGPT URL (via Model bewerken). In Bekijk model
+staat het als klikbare link bij de inventarisgegevens; het zit ook in de CSV.
+Modellen met een gekoppelde bronchat krijgen die link als beginwaarde.
+
 AFSPRAKEN MET KOPERS EN KALENDER
 In Bekijk model > Afspraak met koper plan je wanneer een koper langskomt:
 datum en tijd, duur, koper (naam/telefoon) en een notitie. Eén afspraak per

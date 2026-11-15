@@ -167,6 +167,25 @@ class InventoryTests(unittest.TestCase):
         self.assertTrue(all('appointment' not in r for r in b.snapshot(self.directory)['records']))
         self.assertNotIn('appointments', b.load_local(self.directory))
 
+    def test_chat_url_saved_validated_and_kept(self):
+        record = b.snapshot(self.directory)['records'][0]
+        metadata = {'id': '1', 'identity': record['values'][1:6], 'values': [str(v) for v in record['values']], 'note': '', 'photos': [], 'ad': '', 'chatUrl': 'https://chatgpt.com/c/abc-123'}
+        self.assertEqual(self.post(metadata, {})[0], 200)
+        self.assertEqual(self.post({**metadata, 'chatUrl': 'javascript:alert(1)'}, {})[0], 400)
+        # Een statuswijziging zonder chatUrl-veld behoudt de URL.
+        quick = {k: v for k, v in metadata.items() if k != 'chatUrl'}
+        quick['values'] = metadata['values'][:]
+        quick['values'][14] = 'Online'
+        self.assertEqual(self.post(quick, {})[0], 200)
+        b.main(self.directory)
+        server.rebuild(self.directory)
+        record = b.snapshot(self.directory)['records'][0]
+        self.assertEqual(record['extra']['chatUrl'], 'https://chatgpt.com/c/abc-123')
+        self.assertEqual(record['values'][14], 'Online')
+        # Leegmaken verwijdert de URL.
+        self.assertEqual(self.post({**metadata, 'identity': record['values'][1:6], 'chatUrl': ''}, {})[0], 200)
+        self.assertNotIn('chatUrl', b.snapshot(self.directory)['records'][0]['extra'])
+
     def test_edit_excel_fields_preserves_other_excel_updates(self):
         before = hashlib.sha256(self.source.read_bytes()).hexdigest()
         record = b.snapshot(self.directory)['records'][0]
