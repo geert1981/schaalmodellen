@@ -39,7 +39,7 @@ a.secondarybutton{display:inline-block;text-decoration:none;color:var(--ink)}
 .cardappt{display:flex;align-items:center;gap:5px;margin:4px 0 0;font-size:12px;font-weight:600;color:#89651d}.cardappt svg{width:14px;height:14px;flex-shrink:0}
 @media(max-width:700px){.apptgrid{grid-template-columns:1fr 1fr}.calday{min-height:64px;padding:3px}.calevent{font-size:10px;padding:2px 3px}.calnav h3{min-width:0;font-size:18px}.apptwhen{min-width:0}}
 [data-theme="dark"] .calhead{background:#22302b}[data-theme="dark"] .calday,[data-theme="dark"] .apptrow{background:#1a2420}[data-theme="dark"] .calday.other{background:#151d1a;color:#5f6b65}[data-theme="dark"] .calevent{background:#1f3d2a;color:#9bd5a5}[data-theme="dark"] .calevent.past{background:#2c2c2a;color:#a9a9a2}[data-theme="dark"] .cardappt{color:#e2c27a}
-.cardmeta>:only-child{margin-left:auto}.cardmeta select.cardstatus{display:inline-block;width:auto;max-width:100%;margin:0;padding:3px 6px;border:1px solid transparent;font-size:11px;cursor:pointer}.cardmeta select.cardstatus:hover{border-color:currentColor}
+.cardlocrow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:6px}.cardlocrow .cardlocation{margin:0;min-width:0}.cardlocrow>.badge,.cardlocrow>select{flex-shrink:0}.cardlocrow select.cardstatus{display:inline-block;width:auto;max-width:100%;margin:0;padding:3px 6px;border:1px solid transparent;font-size:11px;cursor:pointer}.cardlocrow select.cardstatus:hover{border-color:currentColor}
 .pricefilter{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;max-width:420px;margin-top:12px}
 .locationtools{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}.locationtools .tablehint{margin:0}
 .locationgroup{background:#fff;border:1px solid var(--line);border-radius:8px;margin-bottom:16px;overflow:hidden}.locationgroup h3{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:0;padding:12px 14px;font:600 17px "Segoe UI",sans-serif;color:var(--green);border-bottom:1px solid var(--line)}.locationgroup h3 span{font-size:12px;font-weight:400;color:var(--muted)}
@@ -168,7 +168,6 @@ function modelCard(record){
  if(photos.length){const img=document.createElement('img');const mini=thumbPath(photos[0]);img.src=mini||photos[0];if(mini)img.addEventListener('error',()=>{img.src=photos[0];},{once:true});img.alt=v[1]+' '+v[2];img.loading='lazy';photo.append(img);const count=document.createElement('span');count.className='photocount';count.textContent=photos.length+" foto's";photo.append(count);}
  else {const placeholder=document.createElement('span');placeholder.className='nophoto';placeholder.innerHTML='<svg viewBox="0 0 120 50" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 34V25l17-5 14-13h35l17 15 16 4 3 8H10Z"/><path d="M34 20h49L72 11H45Z"/><circle cx="30" cy="35" r="8" fill="var(--paper)"/><circle cx="92" cy="35" r="8" fill="var(--paper)"/></svg>Foto volgt';photo.append(placeholder);}
  const body=document.createElement('div');body.className='cardbody';
- const meta=document.createElement('div');meta.className='cardmeta';meta.append(appConfig?cardStatusSelect(record):statusBadge(v[14]));
  const brand=document.createElement('div');brand.className='cardbrand';brand.textContent=v[1];
  const title=document.createElement('h3');title.textContent=v[2];
  const line=document.createElement('p');line.className='cardline';line.textContent=[v[3],v[4],v[7]].filter(value=>!isUnknown(value)).join(' · ')||'Details nog aan te vullen';
@@ -176,7 +175,8 @@ function modelCard(record){
  const bottom=document.createElement('div');bottom.className='cardbottom';
  const price=document.createElement('div');price.className='cardprice';const priceLabel=document.createElement('span');priceLabel.className='pricelabel';priceLabel.textContent='Zonder doos';price.append(priceLabel,document.createTextNode(isUnknown(v[11])?'Prijs onbekend':formatValue(v[11],11)));
  const button=document.createElement('button');button.type='button';button.className='detailbutton';button.textContent='Bekijk model →';button.addEventListener('click',()=>openDetails(record));bottom.append(price,button);
- body.append(meta,brand,title,line,location);
+ const locrow=document.createElement('div');locrow.className='cardlocrow';locrow.append(location,appConfig?cardStatusSelect(record):statusBadge(v[14]));
+ body.append(brand,title,line,locrow);
  const appt=record.appointment;if(appt&&apptEnd(appt)>=new Date()){const p=document.createElement('p');p.className='cardappt';p.innerHTML='<svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="3" width="12" height="11" rx="1.5"/><path d="M2 6.5h12M5.5 1.5v3M10.5 1.5v3"/></svg>';p.append(document.createTextNode('Afspraak '+apptWhen(appt)));body.append(p);}
  body.append(bottom);card.append(photo,body);return card;
 }
