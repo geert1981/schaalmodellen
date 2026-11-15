@@ -397,6 +397,8 @@ document.getElementById('calPrev').addEventListener('click',()=>{calMonth=new Da
 document.getElementById('calNext').addEventListener('click',()=>{calMonth=new Date(calMonth.getFullYear(),calMonth.getMonth()+1,1);renderCalendar();});
 document.getElementById('calToday').addEventListener('click',()=>{const t=new Date();calMonth=new Date(t.getFullYear(),t.getMonth(),1);renderCalendar();});
 renderCalendar();
+// Chats die intussen aan een model gekoppeld zijn (bronchat of ChatGPT URL) niet meer als 'niet gekoppeld' tonen.
+{const linked=data.records.map(chatUrlOf).filter(Boolean).join(' ');data.unmatched=(data.unmatched||[]).filter(chat=>!linked.includes(chat.id));}
 if(data.unmatched?.length){document.getElementById('unmatchedSection').hidden=false;document.getElementById('unmatchedTitle').textContent=data.unmatched.length+' chats nog niet eenduidig gekoppeld';data.unmatched.forEach(chat=>{const li=document.createElement('li');const a=document.createElement('a');a.href='https://chatgpt.com/c/'+chat.id;a.target='_blank';a.rel='noopener';a.textContent=chat.title;li.append(a);document.getElementById('unmatchedList').append(li);});}
 document.getElementById('total').textContent=data.records.length;
 document.getElementById('brands').textContent=new Set(data.records.map(r=>r.values[1]).filter(v=>!isUnknown(v))).size;
