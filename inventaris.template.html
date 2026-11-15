@@ -124,6 +124,7 @@ const fold=v=>String(v).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerC
 const isUnknown=v=>String(v).trim().toLowerCase()==='onbekend';
 const filters=[];let sortColumn=0,sortDirection=1;
 let view='cards';
+let appConfig=null; // wordt gezet door connectApp(); vroeg gedeclareerd omdat de kaarten het gebruiken
 function formatValue(value,index){return index>=11&&index<=13&&typeof value==='number'?currency.format(value):String(value);}
 function statusBadge(value){const badge=document.createElement('span');const status=fold(value).trim();badge.className='badge'+(status==='online'?' online':status==='verkocht'?' sold':status.includes('reserv')?' reserved':'');badge.textContent=isUnknown(value)?'Status onbekend':value;return badge;}
 // Kolommen die bij geen enkel model ingevuld zijn (nu: Doos) worden verborgen tot ze gevuld zijn. Formulier en CSV tonen ze wel.
@@ -410,7 +411,7 @@ document.getElementById('source').textContent='Excelbron: '+data.source+' · Wer
 restoreViewState();render();
 
 // Opslaan verloopt via de lokale Python-app; index.html blijft ook los leesbaar.
-let appConfig=null,editingRecord=null,photoItems=[],requestId='';
+let editingRecord=null,photoItems=[],requestId='';
 const editDialog=document.getElementById('editDialog'),modelForm=document.getElementById('modelForm');
 const modelInputs=[];
 // Keuzelijsten: vaste waarden aangevuld met waarden die al in de inventaris voorkomen.
