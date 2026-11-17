@@ -29,9 +29,9 @@ Exporteer CSV downloadt de getoonde modellen (na zoeken, filters en sortering)
 met alle 15 kolommen plus Opmerking. Het bestand opent direct in Excel
 (puntkomma als scheiding, komma als decimaalteken).
 In het formulier kies je Conditie en Status zoekertje uit een keuzelijst.
-Bovenaan staan totalen: aantal en waarde online, gereserveerd en verkocht,
-en de collectiewaarde zonder de verkochte modellen (vraagprijs zonder doos).
-Houd de muis op een getal voor uitleg, o.a. hoeveel modellen geen prijs hebben.
+Bovenaan staan de aantallen online, gereserveerd en verkocht. Houd de muis
+op een getal voor de waarde (vraagprijs zonder doos) en hoeveel modellen
+geen prijs hebben.
 In Bekijk model kun je de status van het zoekertje meteen wijzigen via de
 keuzelijst; dat wordt direct opgeslagen (alleen met Start inventaris.cmd).
 Per locatie (naast Foto-overzicht en Tabel) groepeert de modellen per

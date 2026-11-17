@@ -109,7 +109,7 @@ Zoeken, filters en sortering werken in alle weergaven, behalve in de kalender.
 - Zoekterm, filters, sortering en weergave worden in de browser onthouden.
 
 ### Totalen
-Bovenaan staan het aantal en de waarde van de modellen die online, gereserveerd of verkocht zijn, plus de **collectiewaarde** zonder de verkochte modellen (vraagprijs zonder doos). Houd de muis op een getal voor uitleg, bijvoorbeeld hoeveel modellen geen prijs hebben.
+Bovenaan staat het aantal modellen dat online, gereserveerd of verkocht is. Houd de muis op een getal voor de waarde (vraagprijs zonder doos) en hoeveel modellen geen prijs hebben.
 
 ### Export
 **Exporteer CSV** downloadt de modellen die je nu ziet (na zoeken, filters en sortering), met alle 15 kolommen plus Opmerking en ChatGPT URL. Het bestand opent meteen goed in Excel: puntkomma als scheidingsteken, komma als decimaalteken.

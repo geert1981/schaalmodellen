@@ -80,7 +80,7 @@ a.secondarybutton{display:inline-block;text-decoration:none;color:var(--ink)}
 </head>
 <body>
 <header><div class="headerinner"><div><div class="eyebrow">Privécollectie · Auto's</div><h1>Schaalmodellen</h1><p>De collectie in beeld. Elk model, elk detail.</p></div>
-<div class="summary"><div class="stat"><strong id="total">—</strong><span>modellen</span></div><div class="stat"><strong id="brands">—</strong><span>automerken</span></div><div class="stat"><strong id="online">—</strong><span id="onlineLabel">zoekertjes online</span></div><div class="stat"><strong id="reservedCount">—</strong><span id="reservedLabel">gereserveerd</span></div><div class="stat"><strong id="soldCount">—</strong><span id="soldLabel">verkocht</span></div><div class="stat"><strong id="collectionValue">—</strong><span id="valueLabel">waarde, excl. verkocht</span></div></div><button id="themeToggle" type="button" class="themebutton"></button></div></header>
+<div class="summary"><div class="stat"><strong id="total">—</strong><span>modellen</span></div><div class="stat"><strong id="brands">—</strong><span>automerken</span></div><div class="stat"><strong id="online">—</strong><span id="onlineLabel">zoekertjes online</span></div><div class="stat"><strong id="reservedCount">—</strong><span id="reservedLabel">gereserveerd</span></div><div class="stat"><strong id="soldCount">—</strong><span id="soldLabel">verkocht</span></div></div><button id="themeToggle" type="button" class="themebutton"></button></div></header>
 <main>
 <div class="managebar"><button id="addModel" type="button" class="primarybutton">+ Model toevoegen</button><button id="openTrash" type="button" class="secondarybutton">Prullenbak</button><button id="refreshExcel" type="button" class="secondarybutton" hidden>Excel opnieuw inlezen</button><p id="appStatus" role="status" aria-live="polite">Voor toevoegen en bewerken: open Start inventaris.cmd.</p></div>
 <div id="localWarnings" hidden role="status"></div>
@@ -406,12 +406,10 @@ document.getElementById('brands').textContent=new Set(data.records.map(r=>r.valu
  const euro=new Intl.NumberFormat('nl-BE',{style:'currency',currency:'EUR',maximumFractionDigits:0});
  const status=r=>fold(r.values[14]).trim(),price=r=>typeof r.values[11]==='number'?r.values[11]:0;
  const group=test=>{const rows=data.records.filter(test);return {count:rows.length,sum:rows.reduce((t,r)=>t+price(r),0),noPrice:rows.filter(r=>typeof r.values[11]!=='number').length};};
- const online=group(r=>status(r)==='online'),reserved=group(r=>status(r).includes('reserv')),sold=group(r=>status(r)==='verkocht'),unsold=group(r=>status(r)!=='verkocht');
+ const online=group(r=>status(r)==='online'),reserved=group(r=>status(r).includes('reserv')),sold=group(r=>status(r)==='verkocht');
  const missing=g=>g.noPrice?' ('+g.noPrice+' zonder prijs niet meegeteld)':'';
  const set=(id,labelId,g,label)=>{document.getElementById(id).textContent=g.count;document.getElementById(labelId).textContent=label;document.getElementById(labelId).parentElement.title=g.count+' modellen, samen '+euro.format(g.sum)+' zonder doos'+missing(g);};
  set('online','onlineLabel',online,'online');set('reservedCount','reservedLabel',reserved,'gereserveerd');set('soldCount','soldLabel',sold,'verkocht');
- document.getElementById('collectionValue').textContent=euro.format(unsold.sum);
- document.getElementById('collectionValue').parentElement.title='Som van de vraagprijs zonder doos van '+unsold.count+' niet-verkochte modellen'+missing(unsold);
 }
 document.getElementById('updated').textContent='Gegevens ingelezen op '+new Intl.DateTimeFormat('nl-BE',{dateStyle:'long',timeStyle:'short',timeZone:'Europe/Brussels'}).format(new Date(data.updated));
 document.getElementById('source').textContent='Excelbron: '+data.source+' · Werkblad Inventaris. Via de pagina toegevoegde modellen worden apart bewaard.';
