@@ -1,5 +1,6 @@
 """Lees Excel uitsluitend; genereer een Parquet-export en offline HTML-inventaris."""
 import datetime
+import copy
 import hashlib
 import json
 import pathlib
@@ -9,6 +10,8 @@ import sys
 import xml.etree.ElementTree as ET
 import zipfile
 from zoneinfo import ZoneInfo
+import collectie
+import beheer
 
 SOURCE = pathlib.Path(r'C:\Users\ntm556\OneDrive - De Stroomlijn\Geert Kril\Schaalmodellen\Inventaris.xlsx')
 HEADERS = ['Nr.', 'Merk (echte auto)', 'Model / uitvoering', 'Bouwjaar (echte auto)', 'Merk modelauto (fabrikant)', 'Modelnr. / artikelnummer', 'Conditie', 'Schaal', 'Oplage', 'Locatie', 'Doos (ja/nee/onbekend)', 'Vraagprijs zonder doos', 'Vraagprijs met doos', 'Vraagprijs met doos als nieuw', '2dehands (status zoekertje)']
@@ -27,7 +30,7 @@ def load_local(directory):
     data = json.loads(path.read_text(encoding='utf-8'))
     if not isinstance(data.get('models'), list) or not isinstance(data.get('excel_media'), dict):
         raise ValueError('Ongeldige structuur in ' + LOCAL_FILE)
-    for key in ('excel_edits', 'hidden_excel', 'appointments'):
+    for key in ('excel_edits', 'hidden_excel', 'appointments', 'sales', 'bundles', 'history'):
         if not isinstance(data.get(key, {}), dict):
             raise ValueError('Ongeldige structuur in ' + LOCAL_FILE + ': ' + key)
     if not isinstance(data.get('archived_models', []), list):
@@ -91,6 +94,12 @@ def merge_local(data, local):
         used.add(key)
         data['records'].append(record)
     attach_appointments(data, local)
+    for record in data['records'] + data['hiddenRecords']:
+        record.pop('sale', None)
+        sale = local.get('sales', {}).get(str(record['values'][0]))
+        if sale and (sale.get('identity') is None or sale['identity'] == record.get('originalValues', record['values'])[1:6]):
+            record['sale'] = {k: sale[k] for k in ('price', 'date')}
+    beheer.attach(data, local)
     data['trash'] = [{'id': str(r['values'][0]), 'title': str(r['values'][1]) + ' ' + str(r['values'][2]), 'origin': 'local'} for r in local.get('archived_models', [])]
     data['trash'].extend({'id': key, 'title': item['title'], 'origin': 'excel'} for key, item in local.get('hidden_excel', {}).items())
     return data
@@ -126,6 +135,7 @@ def snapshot(directory):
 
 
 def render_html(directory, data):
+    collectie.enrich(data, directory)
     payload = json.dumps(data, ensure_ascii=False).replace('<', '\\u003c').replace('>', '\\u003e').replace('&', '\\u0026')
     template = TEMPLATE.read_text(encoding='utf-8')
     if template.count('__INVENTARIS_DATA__') != 1:
@@ -222,6 +232,9 @@ def main(directory=None):
     directory = pathlib.Path(directory) if directory is not None else DATA_DIR
     if not directory.is_dir():
         raise RuntimeError(f'Gegevensmap niet gevonden: {directory}. Maak de koppeling naar OneDrive opnieuw aan (zie LEESMIJ.txt).')
+    before_data = snapshot(directory) if (directory / 'index.html').is_file() else None
+    local = load_local(directory)
+    before_local = copy.deepcopy(local)
     data = extract(SOURCE, include_raw=True)
     table = parquet_table(data.pop('_raw_rows'), data)
     import pyarrow.parquet as pq
@@ -232,22 +245,32 @@ def main(directory=None):
         if extra and extra.get('identity') == record['values'][1:6]:
             record['extra'] = extra
     data['unmatched'] = extras.get('_unmatched', [])
-    merge_local(data, load_local(directory))
+    merge_local(data, copy.deepcopy(local))
+    if before_data is not None:
+        beheer.log_changes(local, before_data, before_local, data, 'Excel opnieuw ingelezen')
+        merge_local(data, copy.deepcopy(local))
     html = render_html(directory, data)
     destination = directory / 'index.html'
     temporary = directory / 'index.html.tmp'
     parquet_path = directory / 'inventaris.parquet'
     parquet_tmp = directory / 'inventaris.parquet.tmp'
+    local_tmp = directory / 'lokale_modellen.history.tmp'
     try:
         pq.write_table(table, parquet_tmp, compression='snappy')
         temporary.write_text(html, encoding='utf-8')
+        if local != before_local:
+            local_tmp.write_text(json.dumps(local, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
         if hashlib.sha256(SOURCE.read_bytes()).hexdigest() != data['sha256']:
             raise RuntimeError('Excel veranderde tijdens het lezen. Probeer opnieuw.')
+        collectie.create_backup(directory, 'Vóór Excel opnieuw inlezen')
+        if local_tmp.exists():
+            local_tmp.replace(directory / LOCAL_FILE)
         parquet_tmp.replace(parquet_path)
         temporary.replace(destination)
     finally:
         parquet_tmp.unlink(missing_ok=True)
         temporary.unlink(missing_ok=True)
+        local_tmp.unlink(missing_ok=True)
     try:
         import miniaturen
         miniaturen.ensure_for_data(directory, data)

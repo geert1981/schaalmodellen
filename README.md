@@ -93,7 +93,7 @@ De `.cmd`-bestanden zoeken zelf een geschikte Python. Ze nemen bij voorkeur de i
 ## Functies
 
 ### Weergaven
-- **Foto-overzicht** (start): kaarten met foto, locatie, status en de vraagprijs zonder doos.
+- **Foto-overzicht** (start): kaarten met foto, locatie, status en een instelbare vraagprijs: zonder doos, met doos of met doos als nieuw. De keuze wordt onthouden.
 - **Tabel**: alle 15 kolommen. Sorteren kan via de kolomtitels.
 - **Per locatie**: modellen gegroepeerd per locatienummer, met aantal en waarde te koop per locatie. Met **Afdrukken** krijg je een lijst per locatie.
 - **Kalender**: maandoverzicht en een lijst met komende afspraken.
@@ -109,10 +109,33 @@ Zoeken, filters en sortering werken in alle weergaven, behalve in de kalender.
 - Zoekterm, filters, sortering en weergave worden in de browser onthouden.
 
 ### Totalen
-Bovenaan staat het aantal modellen dat online, gereserveerd of verkocht is. Houd de muis op een getal voor de waarde (vraagprijs zonder doos) en hoeveel modellen geen prijs hebben.
+Bovenaan staat het aantal modellen dat online, gereserveerd of verkocht is. Online en gereserveerd tonen in de toelichting de vraagwaarde zonder doos. Verkocht toont de werkelijke verkoopopbrengst en hoeveel verkoopprijzen nog onbekend zijn.
 
 ### Export
 **Exporteer CSV** downloadt de modellen die je nu ziet (na zoeken, filters en sortering), met alle 15 kolommen plus Opmerking en ChatGPT URL. Het bestand opent meteen goed in Excel: puntkomma als scheidingsteken, komma als decimaalteken.
+
+**Volledige export** werkt los van zoeken en filters en biedt twee formaten:
+
+- **ZIP**: alle actieve modellen in `collectie.json` en `collectie.parquet`, de originele foto's, opgeslagen aanvullingen, afspraken, verkoopgegevens en prullenbak. Ook `index.html` zit erbij; die kun je uitgepakt offline bekijken. `export-info.json` vermeldt eventueel ontbrekende foto's.
+- **Parquet**: de gecombineerde actieve collectie, inclusief lokale wijzigingen, fotopaden, teksten, afspraken en werkelijke verkoopprijs/datum. Foto's zelf worden via de ZIP meegenomen.
+
+Deze volledige export vervangt `inventaris.parquet` niet: dat bestand blijft uitsluitend de Excel-bron weergeven.
+
+### Back-ups en herstel
+
+Vóór opslaan, verwijderen, herstellen uit de prullenbak, afspraken wijzigen en Excel opnieuw inlezen wordt automatisch een herstelpunt gemaakt. Via **Back-ups** kun je ook handmatig een herstelpunt maken en de hele collectie terugzetten. Vóór terugzetten wordt de huidige versie eveneens bewaard. De bron-Excel wordt nooit teruggezet of gewijzigd.
+
+Herstelpunten staan in `data/backups/*.zip`. Foto's worden per inhoudsversie één keer opgeslagen in `data/backups/fotobestanden/`; alle herstelpunten verwijzen daarnaar. Bewaar dus de **hele backups-map** samen, niet alleen een losse ZIP. Bestaande herstelpunten worden niet automatisch verwijderd. De eerste keer kan het veiligstellen van de foto's langer duren. Ontbrekende foto's worden gemeld, niet verzonnen.
+
+### Publicatiecontrole en dubbele modellen
+
+Onder **Filters > Publicatiecontrole** kun je ontbrekende foto's, tekst of prijzen, afwijkende prijzen in zoekertjestekst en mogelijke dubbele modellen tonen. De details tonen de aandachtspunten. Voor prijzen vergelijkt de controle expliciete eurobedragen/vraagprijzen met de ingevulde vraagprijzen; dit is een hulpmiddel, geen inhoudelijke goedkeuring voor publicatie.
+
+Bij toevoegen en bewerken waarschuwt de app voor hetzelfde automerk/model. Bekende verschillende bouwjaren, fabrikanten, artikelnummers of schalen worden onderscheiden. Onbekende gegevens kunnen tot een waarschuwing leiden. Een tweede exemplaar kan nog steeds worden opgeslagen na expliciete bevestiging; de app voegt niets automatisch samen.
+
+### Verkoop registreren
+
+De snelle statuskeuze werkt op de kaarten en in het detailvenster. Bij **Verkocht** vul je de werkelijke verkoopprijs (optioneel) en datum in. Ook via **Model bewerken** kun je die aanpassen. Een onbekende verkoopprijs telt niet als nul in de opbrengst; een expliciete prijs van nul blijft wel nul. Verkoopgegevens blijven na een Excel-update bewaard.
 
 ### Overig
 - **Status zoekertje** kun je in *Bekijk model* meteen wijzigen via de keuzelijst. Dat wordt direct opgeslagen (alleen als de app via `Start inventaris.cmd` draait).
@@ -122,6 +145,31 @@ Bovenaan staat het aantal modellen dat online, gereserveerd of verkocht is. Houd
 - **Miniaturen** (`fotos/_mini`) worden automatisch gemaakt bij het starten, na opslaan en bij `Bijwerken.cmd`. Ontbreekt een miniatuur, dan toont de kaart de originele foto. Alles handmatig aanmaken kan met `python miniaturen.py`.
 
 ---
+
+
+## Verkoopbundels
+
+Via **Verkoopbundels > Nieuwe bundel** kies je minstens twee modellen, de koper, contactgegevens, een afgesproken totaalprijs en eventueel één afhaalafspraak. Ook vanuit een model kun je **Bundel maken** kiezen.
+
+- Een model kan tegelijk bij één actieve bundel horen. Afzonderlijk verkochte modellen kunnen niet opnieuw in een bundel worden verkocht.
+- **Gereserveerd** of **Verkocht** geldt voor alle geselecteerde modellen. Beheer die status, verkoopdatum en afspraak via de bundel; andere modelgegevens kun je gewoon blijven bewerken.
+- De kalender en agenda-export tonen de gezamenlijke afspraak **één keer**, met alle modellen in de omschrijving.
+- Een verkochte bundel telt bij de opbrengst **één keer** mee. Het totaal wordt niet automatisch over de modellen verdeeld. De modelregels hebben daarom geen fictieve individuele verkoopprijs.
+- Je kunt leden toevoegen/verwijderen zolang minstens twee modellen overblijven. Verwijderde leden krijgen hun eerdere status terug.
+- **Bundel opheffen** herstelt de eerdere statussen en laat eventuele oorspronkelijke individuele afspraken weer zien. De bundel blijft als geannuleerd bewaard en kan opnieuw worden gebruikt.
+- Haal een model eerst uit de bundel voordat je het naar de prullenbak verplaatst. Wijzigingen van de Excel-identiteit worden gecontroleerd; een ander model met hetzelfde nummer wordt niet automatisch aan de bundel gekoppeld.
+
+## Wijzigingsgeschiedenis per model
+
+Open **Bekijk model > Wijzigingsgeschiedenis**. Vanaf het inschakelen van deze functie worden daadwerkelijke wijzigingen vastgelegd: datum/tijd, actie en waarden vóór/na. Dit omvat modelgegevens, prijs/status, foto's, tekst, verkoopgegevens, afspraken, bundelwijzigingen, prullenbakacties en wijzigingen door opnieuw ingelezen Excel.
+
+**Deze wijziging terugdraaien** zet alleen de velden uit dat moment terug. Andere velden blijven behouden. De server controleert dat de betrokken velden nog dezelfde waarden hebben; een latere wijziging in hetzelfde veld wordt nooit stilzwijgend overschreven. Het terugdraaien krijgt zelf ook een geschiedenisregel.
+
+Toevoegen/verwijderen beheer je via de prullenbak, samenhangende bundelwijzigingen via de bundel. Een Excel-nummer dat inmiddels bij een andere modelidentiteit hoort kan niet met een oude geschiedenisregel worden aangepast. Ontbreekt een oudere foto, herstel die eerst via Back-ups.
+
+De geschiedenis staat samen met bundels in `data/lokale_modellen.json` en blijft behouden na een herstart of Excel-update. Er wordt geen geschiedenis van vóór deze functie verzonnen. Volledige back-upherstelpunten zetten ook de geschiedenis terug naar dat moment; de versie van vóór het terugzetten blijft in het vooraf gemaakte herstelpunt staan.
+
+De volledige ZIP-export bevat ook `verkoopbundels.json` en `wijzigingsgeschiedenis.json`. In de Parquet-export staan per model de bundel-ID, bundelnaam en geschiedenis. Bundeltotalen staan afzonderlijk in de bundelgegevens; tel ze niet per model op.
 
 ## Modellen toevoegen, bewerken en verwijderen
 
@@ -198,7 +246,7 @@ Je kunt modellen uit Excel zowel in Excel als via de pagina bijwerken.
 3. Vernieuw `data\index.html` in de browser.
 
 > [!WARNING]
-> Dubbele modellen tussen Excel en de pagina worden niet automatisch herkend. Voer elk model dus via één van beide in.
+> Mogelijke dubbele modellen worden gemeld bij toevoegen en bewerken, ook tussen Excel en de pagina. Een tweede exemplaar vereist bevestiging; er wordt niets automatisch samengevoegd.
 >
 > Verandert de identiteit van een Excel-model, bijvoorbeeld omdat een nummer opnieuw is gebruikt? Dan worden de opgeslagen wijzigingen, foto's, teksten en verwijdering bewaard maar **niet toegepast**, en toont de pagina een melding. Zo wordt een nieuw model niet per ongeluk aangepast of verborgen.
 
@@ -237,6 +285,8 @@ Je kunt modellen uit Excel zowel in Excel als via de pagina bijwerken.
 | `Bijwerken.cmd` | Leest Excel opnieuw in en maakt `index.html` en `inventaris.parquet` (`bijwerken.py`) |
 | `server.py` | Lokale webserver: opslaan, bewerken, prullenbak, afspraken |
 | `bijwerken.py` | Leest Excel in, maakt de pagina en de Parquet-export |
+| `beheer.py` | Verkoopbundels, modelgeschiedenis en selectief terugdraaien |
+| `collectie.py` | Herstelpunten, volledige export en publicatie-/dubbelcontroles |
 | `miniaturen.py` | Maakt miniaturen in `fotos/_mini` |
 | `inventaris.template.html` | Sjabloon voor de pagina (HTML, CSS en JavaScript, allemaal ingebed) |
 | `test_inventaris.py` | Integratietests |
@@ -244,7 +294,7 @@ Je kunt modellen uit Excel zowel in Excel als via de pagina bijwerken.
 | `data/` | Junction naar de gegevens in OneDrive (niet in Git) |
 
 > [!NOTE]
-> Houd `bijwerken.py`, `server.py`, `miniaturen.py`, `inventaris.template.html` en de `.cmd`-bestanden samen in één map.
+> Houd `bijwerken.py`, `server.py`, `collectie.py`, `beheer.py`, `miniaturen.py`, `inventaris.template.html` en de `.cmd`-bestanden samen in één map.
 
 ---
 

@@ -24,14 +24,15 @@ voor alle inventarisgegevens, foto's en zoekertjestekst.
 Open Filters om extra filters te kiezen. Het aantal actieve filters staat erbij.
 Via Tabel krijg je alle 15 kolommen. Zoeken, filters en sortering gelden voor
 beide weergaven. Sorteren kan via de keuzelijst of de kolomtitels in de tabel.
-Het foto-overzicht toont de vraagprijs zonder doos; alle prijzen staan bij de details.
+Via Kaartprijs kies je zonder doos, met doos of met doos als nieuw.
+Het prijsfilter blijft op de vraagprijs zonder doos werken.
 Exporteer CSV downloadt de getoonde modellen (na zoeken, filters en sortering)
 met alle 15 kolommen plus Opmerking. Het bestand opent direct in Excel
 (puntkomma als scheiding, komma als decimaalteken).
 In het formulier kies je Conditie en Status zoekertje uit een keuzelijst.
 Bovenaan staan de aantallen online, gereserveerd en verkocht. Houd de muis
-op een getal voor de waarde (vraagprijs zonder doos) en hoeveel modellen
-geen prijs hebben.
+op een getal voor de waarde. Bij verkocht wordt de werkelijke opbrengst
+getoond, met het aantal onbekende verkoopprijzen.
 In Bekijk model kun je de status van het zoekertje meteen wijzigen via de
 keuzelijst; dat wordt direct opgeslagen (alleen met Start inventaris.cmd).
 Per locatie (naast Foto-overzicht en Tabel) groepeert de modellen per
@@ -106,8 +107,8 @@ Als de identiteit van een Excel-model wijzigt, worden de daarvoor opgeslagen
 wijzigingen, foto's, teksten en verwijdering bewaard maar niet toegepast;
 de pagina toont een melding. Zo wordt een nieuw model met een hergebruikt
 Excel-nummer niet onbedoeld aangepast of verborgen.
-Er is geen automatische herkenning van dubbele modellen tussen beide bronnen.
-Voer hetzelfde model dus via één van beide routes in.
+De app waarschuwt bij mogelijke dubbele modellen, ook tussen beide bronnen.
+Een tweede exemplaar kan na expliciete bevestiging worden opgeslagen.
 Een foto verwijderen in het formulier verwijdert de koppeling; het lokale
 fotobestand blijft bewaard, zodat oudere verwijzingen niet worden beschadigd.
 
@@ -119,7 +120,7 @@ NA WIJZIGINGEN IN EXCEL
 Het programma gebruikt de Python-versie van Codex, of de Python-launcher
 indien die apart is geinstalleerd. Voor Parquet is pyarrow nodig.
 Eenmalig installeren: python -m pip install -r requirements.txt
-Bewaar bijwerken.py, server.py, miniaturen.py, inventaris.template.html en de cmd-bestanden samen.
+Bewaar bijwerken.py, server.py, collectie.py, miniaturen.py, inventaris.template.html en de cmd-bestanden samen.
 Bij een fout tijdens het inlezen blijft de vorige pagina behouden.
 
 BRON
@@ -174,3 +175,39 @@ leest Excel opnieuw en bewaart de gekoppelde foto's en teksten. Nieuwe chats
 worden niet automatisch opgehaald. Vraag daarvoor een nieuwe verwerking.
 Als merk/model/bouwjaar/fabrikant/artikelnummer in Excel veranderen, wordt
 de oude koppeling uit voorzorg niet toegepast tot ze opnieuw is gecontroleerd.
+
+NIEUW: HERSTELPUNTEN, VOLLEDIGE EXPORT EN CONTROLES
+- Back-ups: automatisch voor wijzigingen, of handmatig via de knop bovenaan.
+  Terugzetten herstelt de hele collectie en de veiliggestelde foto's.
+  Voor terugzetten wordt ook de huidige versie bewaard. Excel blijft ongewijzigd.
+  Bewaar de hele data/backups-map: de ZIP-herstelpunten en fotobestanden horen samen.
+  Er worden geen oude herstelpunten automatisch verwijderd.
+- Volledige export: ZIP met originele foto's, JSON en Parquet, of alleen Parquet.
+  Dit bevat alle actieve Excel- en paginamodellen met lokale wijzigingen,
+  teksten, afspraken en verkoopgegevens, onafhankelijk van filters.
+  De ZIP bevat ook de aanvullingen en prullenbak. Export-info meldt ontbrekende foto's.
+  De bestaande inventaris.parquet blijft een afzonderlijke Excel-export.
+- Publicatiecontrole: filters voor ontbrekende foto's/tekst/prijs en prijsverschillen.
+  Mogelijke dubbele modellen staan ook bij deze filters en in de modeldetails.
+- Verkocht: vul werkelijke verkoopprijs (mag onbekend blijven) en verkoopdatum in.
+  Bewerken kan via Model bewerken. Gegevens blijven behouden na Excel inlezen.
+
+VERKOOPBUNDELS
+Via Verkoopbundels > Nieuwe bundel kies je minstens twee modellen, koper,
+contactgegevens, totaalprijs en eventueel één gezamenlijke afhaalafspraak.
+De bundelstatus geldt voor alle leden. De kalender toont de afspraak één keer.
+Een bundeltotaal telt maar één keer mee bij de opbrengst, niet per model.
+De prijs wordt niet automatisch over de modellen verdeeld.
+Bundel opheffen zet de eerdere statussen en individuele afspraken terug.
+Andere modelgegevens blijven gewoon bewerkbaar; status/afspraak via de bundel.
+Een model kan maar bij één actieve bundel horen. Haal het eerst uit de bundel
+voordat je het verwijdert. Geannuleerde bundels blijven bewaard.
+
+WIJZIGINGSGESCHIEDENIS
+Bekijk model > Wijzigingsgeschiedenis toont vanaf nu wat wanneer veranderde,
+met de waarden vóór en na. Ook Excel-updates en bundelwijzigingen worden gelogd.
+Terugdraaien zet alleen de betrokken velden terug, als hun waarde nog klopt.
+Andere velden blijven behouden. Terugdraaien wordt zelf ook vastgelegd.
+Gebruik de prullenbak voor verwijderen/herstellen en de bundel voor bundelacties.
+Oudere geschiedenis wordt niet achteraf aangemaakt. Back-ups en volledige export
+nemen de geschiedenis en bundelgegevens mee. Zie README.md voor meer uitleg.

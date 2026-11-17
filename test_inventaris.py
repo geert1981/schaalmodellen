@@ -1,6 +1,7 @@
 """Integratietests in tijdelijke mappen; de echte collectie wordt niet gewijzigd."""
 import base64
 import hashlib
+import io
 import http.client
 import json
 from pathlib import Path
@@ -13,6 +14,8 @@ from xml.sax.saxutils import escape
 
 import bijwerken as b
 import server
+import collectie
+import beheer
 
 PNG = base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jrZkAAAAASUVORK5CYII=')
 
@@ -300,6 +303,272 @@ class InventoryTests(unittest.TestCase):
         record = b.load_local(self.directory)['models'][0]
         self.assertEqual((self.directory / record['extra']['photos'][0]).read_bytes(), PNG + b'second')
         self.assertEqual((self.directory / record['extra']['photos'][1]).read_bytes(), PNG)
+
+    def json_post(self, route, metadata):
+        headers = {'Content-Type': 'application/json', 'Origin': self.origin, 'X-Inventaris-Token': self.http.token, 'X-Inventaris-Revision': server.revision(self.directory)}
+        status, raw = self.request('POST', route, json.dumps(metadata).encode(), headers)
+        return status, json.loads(raw)
+
+    def test_full_export_contains_excel_local_media_sales_and_appointments(self):
+        self.assertEqual(self.post(self.metadata())[0], 200)
+        record = next(r for r in b.snapshot(self.directory)['records'] if r['origin'] == 'local')
+        self.assertEqual(self.appointment(record, {'start': '2026-11-20T14:30', 'duration': 30, 'buyer': 'Jan', 'note': ''})[0], 200)
+        status = {'id': record['values'][0], 'identity': record['values'][1:6], 'status': 'Verkocht', 'sale': {'price': '70,25', 'date': '2026-11-17'}}
+        self.assertEqual(self.json_post('/api/status', status)[0], 200)
+        import pyarrow.parquet as pq
+        code, raw = self.request('GET', '/api/export/collectie.parquet')
+        self.assertEqual(code, 200)
+        table = pq.read_table(io.BytesIO(raw))
+        self.assertEqual(table.num_rows, 2)
+        rows = table.to_pylist()
+        exported = next(r for r in rows if r['Bron'] == 'local')
+        self.assertEqual(exported['Verkoopprijs'], 70.25)
+        self.assertEqual(exported['Verkoopdatum'], '2026-11-17')
+        self.assertEqual(json.loads(exported['Afspraak'])['buyer'], 'Jan')
+        self.assertEqual(exported['Zoekertjestekst'], self.metadata()['ad'])
+        code, raw = self.request('GET', '/api/export/collectie.zip')
+        self.assertEqual(code, 200)
+        with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+            self.assertEqual(archive.read(exported['Foto’s'][0]), PNG)
+            self.assertEqual(json.loads(archive.read('export-info.json'))['models'], 2)
+            self.assertEqual(len(json.loads(archive.read('collectie.json'))['records']), 2)
+            self.assertIn('lokale_modellen.json', archive.namelist())
+
+    def test_automatic_backups_restore_data_and_photo_bytes(self):
+        source_hash = hashlib.sha256(self.source.read_bytes()).hexdigest()
+        self.assertEqual(self.post(self.metadata())[0], 200)
+        record = next(r for r in b.snapshot(self.directory)['records'] if r['origin'] == 'local')
+        original_photo = record['extra']['photos'][0]
+        edit = {**self.metadata(), 'id': record['values'][0], 'identity': record['values'][1:6], 'values': [str(v) for v in record['values']], 'photos': [{'path': original_photo}]}
+        edit['values'][11] = '99'
+        self.assertEqual(self.post(edit, {})[0], 200)
+        backups = collectie.list_backups(self.directory)
+        self.assertEqual(len(backups), 2)
+        self.assertEqual(len(list((self.directory / 'backups' / 'fotobestanden').iterdir())), 1)
+        (self.directory / original_photo).unlink()
+        self.assertEqual(self.json_post('/api/backups/restore', {'id': backups[0]['id']})[0], 200)
+        restored = next(r for r in b.snapshot(self.directory)['records'] if r['origin'] == 'local')
+        self.assertEqual(restored['values'][11], 75.5)
+        self.assertEqual((self.directory / original_photo).read_bytes(), PNG)
+        self.assertEqual(hashlib.sha256(self.source.read_bytes()).hexdigest(), source_hash)
+        # Ook terug naar vóór het eerste paginamodel werkt; herstellen maakt een terugweg.
+        self.assertEqual(self.json_post('/api/backups/restore', {'id': backups[-1]['id']})[0], 200)
+        self.assertEqual(len(b.snapshot(self.directory)['records']), 1)
+        self.assertGreaterEqual(len(collectie.list_backups(self.directory)), 4)
+
+    def test_corrupt_backup_photo_rejected_before_data_is_changed(self):
+        self.assertEqual(self.post(self.metadata())[0], 200)
+        self.assertEqual(self.json_post('/api/backups/create', {})[0], 200)
+        backup = collectie.list_backups(self.directory)[0]
+        pool = self.directory / 'backups' / 'fotobestanden'
+        next(pool.iterdir()).write_bytes(b'damaged')
+        before = (self.directory / b.LOCAL_FILE).read_bytes()
+        self.assertEqual(self.json_post('/api/backups/restore', {'id': backup['id']})[0], 400)
+        self.assertEqual((self.directory / b.LOCAL_FILE).read_bytes(), before)
+        self.assertEqual(self.json_post('/api/backups/restore', {'id': '../index.html'})[0], 400)
+
+    def test_duplicate_warning_requires_explicit_confirmation(self):
+        self.assertEqual(self.post(self.metadata())[0], 200)
+        duplicate = self.metadata()
+        duplicate['requestId'] = 'another-copy'
+        before = (self.directory / b.LOCAL_FILE).read_bytes()
+        code, result = self.post(duplicate)
+        self.assertEqual(code, 409)
+        self.assertEqual(len(result['duplicates']), 1)
+        self.assertEqual((self.directory / b.LOCAL_FILE).read_bytes(), before)
+        duplicate['confirmDuplicate'] = True
+        self.assertEqual(self.post(duplicate)[0], 200)
+        data = b.snapshot(self.directory)
+        copies = [r for r in data['records'] if r['origin'] == 'local']
+        self.assertEqual(len(copies), 2)
+        self.assertTrue(all(len(r['quality']['duplicates']) == 1 for r in copies))
+        # Snel een status kiezen mag ook bij een bevestigd tweede exemplaar.
+        record = copies[0]
+        self.assertEqual(self.json_post('/api/status', {'id': record['values'][0], 'identity': record['values'][1:6], 'status': 'Online'})[0], 200)
+
+    def test_publication_checks_prices_and_missing_fields(self):
+        record = {'values': ['', 'Ford', 'Mustang', 1967, 'Maker', '123', 'Goed', '1:18', 'Onbekend', 'Kast', 'Nee', 75.5, 'Onbekend', 'Onbekend', 'Online'], 'extra': {'photos': ['fotos/01.jpg'], 'ad': '**Vraagprijs: € 75,50**'}}
+        self.assertEqual(collectie.checks(record), [])
+        record['extra']['ad'] = 'Bouwjaar 1967, artikel 123. Vraagprijs: € 85.'
+        self.assertEqual([i['code'] for i in collectie.checks(record)], ['price_mismatch'])
+        record['extra'] = {}
+        record['values'][11] = 'Onbekend'
+        self.assertEqual({i['code'] for i in collectie.checks(record)}, {'photos', 'ad', 'price'})
+        self.assertEqual(collectie.ad_prices('Vraagprijs: € 1.250,50'), [1250.5])
+        self.assertEqual(collectie.ad_prices('Model 123 uit 1967'), [])
+
+    def test_quick_status_records_real_sale_and_preserves_excel_link(self):
+        record = b.snapshot(self.directory)['records'][0]
+        metadata = {'id': '1', 'identity': record['values'][1:6], 'status': 'Verkocht', 'sale': {'price': '0', 'date': '2026-11-17'}}
+        self.assertEqual(self.json_post('/api/status', metadata)[0], 200)
+        b.main(self.directory)
+        server.rebuild(self.directory)
+        saved = b.snapshot(self.directory)['records'][0]
+        self.assertEqual(saved['values'][14], 'Verkocht')
+        self.assertEqual(saved['sale'], {'price': 0, 'date': '2026-11-17'})
+        for bad in ({'price': '-1', 'date': '2026-11-17'}, {'price': '10', 'date': 'not-a-date'}):
+            self.assertEqual(self.json_post('/api/status', {**metadata, 'sale': bad})[0], 400)
+
+    def make_bundle(self, records, **changes):
+        metadata = {'requestId': 'bundle-test', 'name': 'Klassiekers', 'buyer': 'Jan', 'contact': 'Testcontact', 'total': '120,50', 'status': 'Gereserveerd', 'members': [{'id': str(r['values'][0]), 'identity': r['values'][1:6]} for r in records], 'appointment': {'start': '2026-11-20T14:30', 'duration': 30}, 'note': 'Samen afhalen'}
+        metadata.update(changes)
+        return self.json_post('/api/bundles', metadata)
+
+    def test_bundle_reservation_sale_refresh_and_cancellation(self):
+        self.assertEqual(self.post(self.metadata())[0], 200)
+        records = b.snapshot(self.directory)['records']
+        individual = {'start': '2026-11-21T09:00', 'duration': 30, 'buyer': 'Eerdere afspraak', 'note': ''}
+        self.assertEqual(self.appointment(records[0], individual)[0], 200)
+        code, result = self.make_bundle(records)
+        self.assertEqual(code, 200, result)
+        key = result['id']
+        # Een herhaald verzoek maakt geen dubbele bundel.
+        self.assertEqual(self.make_bundle(records)[1]['id'], key)
+        data = b.snapshot(self.directory)
+        self.assertEqual(len(data['bundles']), 1)
+        self.assertTrue(all(r['values'][14] == 'Gereserveerd' and r['bundle']['id'] == key for r in data['records']))
+        self.assertTrue(all(r['appointment']['start'] == '2026-11-20T14:30' and r['appointmentScope'] == 'bundle' for r in data['records']))
+        self.assertEqual(self.make_bundle(data['records'], id=key, status='Verkocht', date='2026-11-17')[0], 200)
+        b.main(self.directory)
+        server.rebuild(self.directory)
+        sold = b.snapshot(self.directory)
+        self.assertEqual(sold['bundles'][0]['total'], 120.5)
+        self.assertTrue(all(r['values'][14] == 'Verkocht' and r['sale']['price'] is None for r in sold['records']))
+        self.assertEqual(self.json_post('/api/bundles', {'id': key, 'action': 'cancel'})[0], 200)
+        restored = b.snapshot(self.directory)
+        self.assertTrue(all('bundle' not in r for r in restored['records']))
+        self.assertEqual(restored['records'][0]['values'][14], records[0]['values'][14])
+        self.assertEqual(restored['records'][0]['appointment'], individual)
+        self.assertTrue(all(any('bundel' in e['action'] for e in b.load_local(self.directory)['history'][str(r['values'][0])]) for r in restored['records']))
+
+    def test_bundle_conflicts_and_individual_changes_are_rejected_atomically(self):
+        self.assertEqual(self.post(self.metadata())[0], 200)
+        records = b.snapshot(self.directory)['records']
+        key = self.make_bundle(records)[1]['id']
+        bundled = b.snapshot(self.directory)['records']
+        before = (self.directory / b.LOCAL_FILE).read_bytes()
+        self.assertEqual(self.make_bundle(bundled, requestId='other-bundle')[0], 400)
+        self.assertEqual(self.state_change(bundled[0])[0], 400)
+        self.assertEqual(self.appointment(bundled[0], None)[0], 400)
+        self.assertEqual(self.json_post('/api/status', {'id': str(bundled[0]['values'][0]), 'identity': bundled[0]['values'][1:6], 'status': 'Online'})[0], 400)
+        self.assertEqual(self.make_bundle(bundled, id=key, total='-1')[0], 400)
+        self.assertEqual((self.directory / b.LOCAL_FILE).read_bytes(), before)
+        # Gewone modelgegevens blijven bewerkbaar zonder bundelstatus of afspraak te wijzigen.
+        record = bundled[0]
+        edit = {'id': str(record['values'][0]), 'identity': record['values'][1:6], 'values': [str(v) for v in record['values']], 'note': 'Nieuwe locatie-informatie', 'photos': [], 'ad': ''}
+        self.assertEqual(self.post(edit, {})[0], 200)
+        self.assertEqual(b.snapshot(self.directory)['records'][0]['bundle']['id'], key)
+
+    def test_bundle_member_replaced_and_excel_identity_guard(self):
+        self.assertEqual(self.post(self.metadata())[0], 200)
+        third = self.metadata()
+        third['requestId'] = 'third-model'
+        third['values'][2] = 'Ander model'
+        self.assertEqual(self.post(third)[0], 200)
+        records = b.snapshot(self.directory)['records']
+        key = self.make_bundle(records[:2])[1]['id']
+        data = b.snapshot(self.directory)
+        self.assertEqual(self.make_bundle([data['records'][0], data['records'][2]], id=key)[0], 200)
+        changed = b.snapshot(self.directory)
+        self.assertNotIn('bundle', changed['records'][1])
+        self.assertEqual(changed['records'][1]['values'][14], records[1]['values'][14])
+        workbook(self.source, brand='Buick')
+        b.main(self.directory)
+        changed = b.snapshot(self.directory)
+        excel = changed['records'][0]
+        self.assertEqual(excel['values'][1], 'Buick')
+        self.assertNotIn('bundle', excel)
+        self.assertTrue(changed['localWarnings'])
+
+    def edit_metadata(self, record, **updates):
+        metadata = {'id': str(record['values'][0]), 'identity': record['values'][1:6], 'values': [str(v) for v in record['values']], 'note': record.get('note', ''), 'ad': record.get('extra', {}).get('ad', ''), 'photos': [{'path': p} for p in record.get('extra', {}).get('photos', [])]}
+        metadata.update(updates)
+        return metadata
+
+    def test_history_selective_undo_preserves_later_unrelated_fields(self):
+        self.assertEqual(self.post(self.metadata())[0], 200)
+        record = next(r for r in b.snapshot(self.directory)['records'] if r['origin'] == 'local')
+        key = str(record['values'][0])
+        edit = self.edit_metadata(record)
+        edit['values'][11] = '90'
+        self.assertEqual(self.post(edit, {})[0], 200)
+        event = b.load_local(self.directory)['history'][key][-1]
+        record = next(r for r in b.snapshot(self.directory)['records'] if str(r['values'][0]) == key)
+        self.assertEqual(self.post(self.edit_metadata(record, note='Latere opmerking'), {})[0], 200)
+        self.assertEqual(self.json_post('/api/history/undo', {'id': key, 'eventId': event['id']})[0], 200)
+        record = next(r for r in b.snapshot(self.directory)['records'] if str(r['values'][0]) == key)
+        self.assertEqual(record['values'][11], 75.5)
+        self.assertEqual(record['note'], 'Latere opmerking')
+        self.assertEqual(b.load_local(self.directory)['history'][key][-1]['undoOf'], event['id'])
+        code, raw = self.request('GET', '/api/history?id=' + key)
+        self.assertEqual(code, 200)
+        self.assertGreaterEqual(len(json.loads(raw)['events']), 4)
+
+    def test_history_conflicting_undo_and_bundle_undo_are_blocked(self):
+        self.assertEqual(self.post(self.metadata())[0], 200)
+        record = next(r for r in b.snapshot(self.directory)['records'] if r['origin'] == 'local')
+        key = str(record['values'][0])
+        edit = self.edit_metadata(record)
+        edit['values'][11] = '90'
+        self.assertEqual(self.post(edit, {})[0], 200)
+        event = b.load_local(self.directory)['history'][key][-1]
+        record = next(r for r in b.snapshot(self.directory)['records'] if str(r['values'][0]) == key)
+        edit = self.edit_metadata(record)
+        edit['values'][11] = '100'
+        self.assertEqual(self.post(edit, {})[0], 200)
+        before = (self.directory / b.LOCAL_FILE).read_bytes()
+        self.assertEqual(self.json_post('/api/history/undo', {'id': key, 'eventId': event['id']})[0], 400)
+        self.assertEqual((self.directory / b.LOCAL_FILE).read_bytes(), before)
+        self.assertEqual(self.make_bundle(b.snapshot(self.directory)['records'])[0], 200)
+        event = b.load_local(self.directory)['history'][key][-1]
+        self.assertFalse(event['undoable'])
+        self.assertEqual(self.json_post('/api/history/undo', {'id': key, 'eventId': event['id']})[0], 400)
+
+    def test_excel_import_history_and_undo_identity_guard(self):
+        workbook(self.source, location='Kast 2')
+        b.main(self.directory)
+        events = b.load_local(self.directory)['history']['1']
+        self.assertTrue(any(c['field'] == 'value:9' for c in events[-1]['changes']))
+        event = events[-1]
+        self.assertEqual(self.json_post('/api/history/undo', {'id': '1', 'eventId': event['id']})[0], 200)
+        self.assertEqual(b.snapshot(self.directory)['records'][0]['values'][9], 'Onbekend')
+        workbook(self.source, brand='Buick')
+        b.main(self.directory)
+        self.assertEqual(self.json_post('/api/history/undo', {'id': '1', 'eventId': event['id']})[0], 400)
+
+    def test_history_restores_photo_text_and_appointment(self):
+        self.assertEqual(self.post(self.metadata())[0], 200)
+        record = next(r for r in b.snapshot(self.directory)['records'] if r['origin'] == 'local')
+        key = str(record['values'][0])
+        old_photos = record['extra']['photos'][:]
+        self.assertEqual(self.post(self.edit_metadata(record, photos=[], ad='Nieuwe tekst'), {})[0], 200)
+        event = b.load_local(self.directory)['history'][key][-1]
+        self.assertEqual(self.json_post('/api/history/undo', {'id': key, 'eventId': event['id']})[0], 200)
+        record = next(r for r in b.snapshot(self.directory)['records'] if str(r['values'][0]) == key)
+        self.assertEqual(record['extra']['photos'], old_photos)
+        self.assertEqual(record['extra']['ad'], self.metadata()['ad'])
+        appointment = {'start': '2026-11-20T15:00', 'duration': 45, 'buyer': 'Jan', 'note': 'Test'}
+        self.assertEqual(self.appointment(record, appointment)[0], 200)
+        event = b.load_local(self.directory)['history'][key][-1]
+        self.assertEqual(self.json_post('/api/history/undo', {'id': key, 'eventId': event['id']})[0], 200)
+        record = next(r for r in b.snapshot(self.directory)['records'] if str(r['values'][0]) == key)
+        self.assertNotIn('appointment', record)
+
+    def test_bundle_and_history_are_in_full_export(self):
+        self.assertEqual(self.post(self.metadata())[0], 200)
+        records = b.snapshot(self.directory)['records']
+        key = self.make_bundle(records, status='Verkocht', date='2026-11-17')[1]['id']
+        code, raw = self.request('GET', '/api/export/collectie.zip')
+        self.assertEqual(code, 200)
+        with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+            bundles = json.loads(archive.read('verkoopbundels.json'))
+            history = json.loads(archive.read('wijzigingsgeschiedenis.json'))
+            self.assertEqual(bundles[key]['total'], 120.5)
+            self.assertTrue(all(str(r['values'][0]) in history for r in records))
+            import pyarrow.parquet as pq
+            rows = pq.read_table(io.BytesIO(archive.read('collectie.parquet'))).to_pylist()
+            self.assertTrue(all(r['Bundel ID'] == key and r['Verkoopprijs'] is None for r in rows))
+            self.assertTrue(all(json.loads(r['Wijzigingsgeschiedenis']) for r in rows))
 
 
 if __name__ == '__main__':
