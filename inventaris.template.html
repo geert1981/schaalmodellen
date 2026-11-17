@@ -408,7 +408,7 @@ document.getElementById('brands').textContent=new Set(data.records.map(r=>r.valu
  const group=test=>{const rows=data.records.filter(test);return {count:rows.length,sum:rows.reduce((t,r)=>t+price(r),0),noPrice:rows.filter(r=>typeof r.values[11]!=='number').length};};
  const online=group(r=>status(r)==='online'),reserved=group(r=>status(r).includes('reserv')),sold=group(r=>status(r)==='verkocht'),unsold=group(r=>status(r)!=='verkocht');
  const missing=g=>g.noPrice?' ('+g.noPrice+' zonder prijs niet meegeteld)':'';
- const set=(id,labelId,g,label)=>{document.getElementById(id).textContent=g.count;document.getElementById(labelId).textContent=label+' · '+euro.format(g.sum);document.getElementById(labelId).parentElement.title=g.count+' modellen, samen '+euro.format(g.sum)+' zonder doos'+missing(g);};
+ const set=(id,labelId,g,label)=>{document.getElementById(id).textContent=g.count;document.getElementById(labelId).textContent=label;document.getElementById(labelId).parentElement.title=g.count+' modellen, samen '+euro.format(g.sum)+' zonder doos'+missing(g);};
  set('online','onlineLabel',online,'online');set('reservedCount','reservedLabel',reserved,'gereserveerd');set('soldCount','soldLabel',sold,'verkocht');
  document.getElementById('collectionValue').textContent=euro.format(unsold.sum);
  document.getElementById('collectionValue').parentElement.title='Som van de vraagprijs zonder doos van '+unsold.count+' niet-verkochte modellen'+missing(unsold);
