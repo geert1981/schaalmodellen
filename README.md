@@ -177,7 +177,7 @@ De volledige ZIP-export bevat ook `verkoopbundels.json` en `wijzigingsgeschieden
 1. Start de app met `Start inventaris.cmd`.
 2. Klik op **+ Model toevoegen**.
 3. Vul minstens **automerk** en **model** in. De rest is optioneel. *Conditie* en *Status zoekertje* kies je uit een keuzelijst.
-4. Kies foto's en plak de volledige tekst voor het zoekertje.
+4. Kies foto's, sleep ze in het formulier of plak een gekopieerde afbeelding met **Ctrl+V**. Plak de zoekertjestekst in het tekstveld.
 5. Zet de hoofdfoto vooraan met de pijltjes en klik **Model opslaan**.
 
 Een nieuw model krijgt automatisch een nummer dat begint met `W-`.
@@ -210,6 +210,20 @@ In **Bekijk model › Afspraak met koper** plan je een bezoek: datum en tijd, du
 ---
 
 ## Foto's en zoekertjes
+
+### Foto's toevoegen en controleren
+
+In **Model toevoegen** of **Model bewerken** kun je:
+
+- foto's vanuit Verkenner in het formulier slepen, ook meerdere tegelijk;
+- een gekopieerde afbeelding of schermafbeelding met **Ctrl+V** plakken; gewone tekst blijft normaal plakken in de tekstvelden;
+- **Foto's kiezen…** gebruiken als je liever via de bestandskiezer werkt.
+
+Nieuwe foto's verschijnen meteen in een grote voorvertoning. Klik op een miniatuur om die groter te bekijken, blader met de pijlen en kies **Als hoofdfoto** om de geselecteerde foto vooraan te zetten. De bestaande pijltjes en verwijderknoppen blijven beschikbaar. Toegevoegde foto's worden pas bewaard met **Model opslaan**.
+
+JPG, PNG, WebP en GIF worden ondersteund. De limieten zijn 20 foto's per model, 15 MB per foto en 75 MB aan nog niet opgeslagen foto's. Ongeldige of te grote bestanden worden overgeslagen met een melding; de andere foto's blijven behouden. Plakken werkt wanneer de browser een echte afbeelding ontvangt, bijvoorbeeld na het kopiëren van een schermafbeelding, niet bij alleen een gekopieerde bestandsnaam of afbeeldingslink.
+
+### Foto's en tekst bekijken
 
 Klik op een foto of op **Bekijk model**. Het detailvenster toont:
 

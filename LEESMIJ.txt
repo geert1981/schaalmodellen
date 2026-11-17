@@ -211,3 +211,13 @@ Andere velden blijven behouden. Terugdraaien wordt zelf ook vastgelegd.
 Gebruik de prullenbak voor verwijderen/herstellen en de bundel voor bundelacties.
 Oudere geschiedenis wordt niet achteraf aangemaakt. Back-ups en volledige export
 nemen de geschiedenis en bundelgegevens mee. Zie README.md voor meer uitleg.
+
+FOTO'S SNEL TOEVOEGEN
+Open Model toevoegen of Model bewerken. Sleep foto's vanuit Verkenner in het
+formulier, plak een gekopieerde afbeelding/schermafbeelding met Ctrl+V of klik
+Foto's kiezen. Gewone tekst blijft normaal plakken in de tekstvelden.
+Nieuwe foto's verschijnen groot in de voorvertoning. Klik op een miniatuur
+om die groter te bekijken; blader met de pijlen of kies Als hoofdfoto.
+Bewaren gebeurt pas bij Model opslaan.
+Maximaal 20 foto's, 15 MB per foto en 75 MB aan nieuwe foto's per model.
+Te grote of ongeschikte bestanden worden overgeslagen met een melding.

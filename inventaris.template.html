@@ -81,6 +81,8 @@ a.secondarybutton{display:inline-block;text-decoration:none;color:var(--ink)}
 @media print{#publicationSummary{display:none!important}}
 
 .bundlechoices{max-height:340px;overflow:auto;border:1px solid var(--line);border-radius:6px;margin:12px 0}.bundlechoice{display:flex;align-items:start;gap:10px;padding:10px 12px;border-bottom:1px solid var(--line);font-weight:400;color:var(--ink)}.bundlechoice input[type=checkbox]{display:inline;width:auto;margin:5px 0}.bundlechoice small{display:block;color:var(--muted)}.bundlecard,.historyevent{border:1px solid var(--line);border-radius:8px;padding:16px;margin-top:16px;overflow-wrap:anywhere}.bundlecard h3,.historyevent h3{font-size:16px;margin:0 0 6px}.bundlecard p{margin:5px 0}.bundletag{display:block;font-size:12px;color:var(--green);margin:8px 0}.historyevent time{display:block;color:var(--muted);font-size:12px}.historyevent ul{padding-left:20px}.historyevent pre{white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.5 "Segoe UI",sans-serif}.historyevent summary{font-size:12px;color:var(--green)}
+
+.photodropzone{border:2px dashed var(--line);border-radius:10px;padding:24px;text-align:center;background:var(--paper);transition:border-color .15s,background .15s}.photodropzone p{margin:8px 0 12px}.photodropzone.dragging{border-color:var(--green);background:color-mix(in srgb,var(--green) 12%,var(--paper))}.photodropzone:focus-visible{outline:3px solid #b58941;outline-offset:3px}.photopreview{border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--paper);margin:12px 0 18px}.photopreviewtools{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px}.photopreviewtools strong{flex:1;min-width:160px;overflow-wrap:anywhere;font-size:12px}#photoPreviewImage{display:block;width:100%;height:min(400px,55vh);object-fit:contain}.photopreviewbutton{display:block;width:100%;padding:0;border:0;background:transparent;cursor:zoom-in}.queuedphoto.selectedphoto{border-color:var(--green);box-shadow:0 0 0 1px var(--green)}
 </style>
 </head>
 <body>
@@ -104,7 +106,10 @@ a.secondarybutton{display:inline-block;text-decoration:none;color:var(--ink)}
 <div id="editSale" class="formgrid widefield" hidden><label>Werkelijke verkoopprijs (€)<input id="editSalePrice" type="number" min="0" step="0.01" placeholder="Onbekend"></label><label>Verkoopdatum<input id="editSaleDate" type="date"></label></div><label class="widefield">Opmerking<textarea id="modelNote" rows="2" maxlength="10000"></textarea></label>
 <label class="widefield">ChatGPT URL<input id="modelChatUrl" type="url" maxlength="2000" placeholder="https://chatgpt.com/c/…" autocomplete="off"></label>
 <h3>Foto’s</h3><p class="formhint">De eerste foto wordt in het overzicht getoond. Verplaats foto’s met de pijltjes. Maximaal 20 foto’s, 15 MB per foto.</p>
-<label>Foto’s toevoegen<input id="photoUpload" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple></label><div id="photoQueue" class="photoqueue"></div>
+<div id="photoDropZone" class="photodropzone" tabindex="0" role="group" aria-label="Foto’s toevoegen" aria-describedby="photoHint"><strong>Sleep je foto’s hierheen</strong><p id="photoHint">Of plak een gekopieerde afbeelding met Ctrl+V terwijl dit formulier openstaat.</p><button id="choosePhotoFiles" type="button" class="secondarybutton">Foto’s kiezen…</button><input id="photoUpload" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple hidden><p class="formhint">JPG, PNG, WebP of GIF · maximaal 20 foto’s · 15 MB per foto · 75 MB aan nieuwe foto’s per model</p></div>
+<p id="photoStatus" class="formhint" role="status" aria-live="polite"></p>
+<div id="photoPreview" class="photopreview" hidden><div class="photopreviewtools"><strong id="photoPreviewCaption"></strong><button id="previousPhoto" type="button" class="secondarybutton" aria-label="Vorige foto">←</button><button id="nextPhoto" type="button" class="secondarybutton" aria-label="Volgende foto">→</button><button id="previewAsMain" type="button" class="secondarybutton">Als hoofdfoto</button><button id="closePhotoPreview" type="button" class="secondarybutton">Voorvertoning sluiten</button></div><img id="photoPreviewImage" alt=""></div>
+<div id="photoQueue" class="photoqueue"></div>
 <label class="widefield">Tekst voor het zoekertje<textarea id="modelAd" rows="12" maxlength="100000" placeholder="Plak hier de volledige tekst van het zoekertje…"></textarea></label>
 <div class="formactions"><button id="saveModel" type="submit" class="primarybutton">Model opslaan</button><p id="saveStatus" role="status" aria-live="polite"></p></div>
 </form></dialog>
@@ -457,12 +462,32 @@ async function connectApp(){
  catch{document.getElementById('appStatus').textContent='Geen verbinding met de lokale app. Open Start inventaris.cmd.';}
 }
 function requireApp(){if(appConfig)return true;document.getElementById('appStatus').textContent='Open Start inventaris.cmd in de projectmap om modellen toe te voegen of te bewerken.';return false;}
-function clearPhotoItems(){for(const item of photoItems)if(item.preview)URL.revokeObjectURL(item.preview);photoItems=[];}
+let previewPhotoItem=null,photoDragDepth=0;
+function resetPhotoDrag(){photoDragDepth=0;document.getElementById('photoDropZone').classList.remove('dragging');}
+function clearPhotoItems(){for(const item of photoItems)if(item.preview)URL.revokeObjectURL(item.preview);photoItems=[];previewPhotoItem=null;resetPhotoDrag();document.getElementById('photoStatus').textContent='';renderPhotoPreview();}
+function photoMessage(message,error=false){const status=document.getElementById('photoStatus');status.textContent=message;status.className=error?'formerror':'formhint';}
+function renderPhotoPreview(){
+ const pane=document.getElementById('photoPreview'),index=photoItems.indexOf(previewPhotoItem),img=document.getElementById('photoPreviewImage');pane.hidden=index<0;
+ if(index<0){img.removeAttribute('src');img.alt='';return;}
+ img.src=previewPhotoItem.path||previewPhotoItem.preview;img.alt=previewPhotoItem.file?.name||'Foto '+(index+1);
+ document.getElementById('photoPreviewCaption').textContent=(index===0?'Hoofdfoto · ':'')+'Foto '+(index+1)+' van '+photoItems.length+(previewPhotoItem.file?.name?' · '+previewPhotoItem.file.name:'');
+ document.getElementById('previousPhoto').disabled=index===0;document.getElementById('nextPhoto').disabled=index===photoItems.length-1;document.getElementById('previewAsMain').disabled=index===0;
+}
+function showPhotoPreview(item){previewPhotoItem=item;renderPhotoQueue();document.getElementById('photoPreview').scrollIntoView({block:'nearest'});}
 function renderPhotoQueue(){
  const queue=document.getElementById('photoQueue');queue.replaceChildren();
- photoItems.forEach((item,index)=>{const card=document.createElement('div');card.className='queuedphoto';const img=document.createElement('img');img.src=item.path||item.preview;img.alt='Foto '+(index+1);const label=document.createElement('p');label.textContent=(index===0?'Hoofdfoto · ':'')+(item.file?.name||'Foto '+(index+1));const tools=document.createElement('div');tools.className='phototools';
- for(const [caption,delta] of [['←',-1],['→',1],['Verwijder',0]]){const button=document.createElement('button');button.type='button';button.textContent=caption;button.setAttribute('aria-label',delta===0?'Verwijder foto '+(index+1):'Verplaats foto '+(index+1)+(delta===-1?' naar voren':' naar achteren'));button.disabled=delta!==0&&(index+delta<0||index+delta>=photoItems.length);button.addEventListener('click',()=>{if(delta===0){if(item.preview)URL.revokeObjectURL(item.preview);photoItems.splice(index,1);}else [photoItems[index],photoItems[index+delta]]=[photoItems[index+delta],photoItems[index]];renderPhotoQueue();});tools.append(button);}
- card.append(img,label,tools);queue.append(card);});
+ photoItems.forEach((item,index)=>{const card=document.createElement('div');card.className='queuedphoto'+(item===previewPhotoItem?' selectedphoto':'');const img=document.createElement('img');img.src=item.path||item.preview;img.alt='Foto '+(index+1);const preview=document.createElement('button');preview.type='button';preview.className='photopreviewbutton';preview.setAttribute('aria-label','Vergroot foto '+(index+1));preview.addEventListener('click',()=>showPhotoPreview(item));preview.append(img);const label=document.createElement('p');label.textContent=(index===0?'Hoofdfoto · ':'')+(item.file?.name||'Foto '+(index+1));const tools=document.createElement('div');tools.className='phototools';
+ for(const [caption,delta] of [['←',-1],['→',1],['Verwijder',0]]){const button=document.createElement('button');button.type='button';button.textContent=caption;button.setAttribute('aria-label',delta===0?'Verwijder foto '+(index+1):'Verplaats foto '+(index+1)+(delta===-1?' naar voren':' naar achteren'));button.disabled=delta!==0&&(index+delta<0||index+delta>=photoItems.length);button.addEventListener('click',()=>{if(document.getElementById('saveModel').disabled)return;if(delta===0){photoItems.splice(index,1);if(previewPhotoItem===item)previewPhotoItem=photoItems[Math.min(index,photoItems.length-1)]||null;if(item.preview)URL.revokeObjectURL(item.preview);}else [photoItems[index],photoItems[index+delta]]=[photoItems[index+delta],photoItems[index]];renderPhotoQueue();});tools.append(button);}
+ card.append(preview,label,tools);queue.append(card);});renderPhotoPreview();
+}
+function supportedPhoto(file){const type=(file.type||'').toLowerCase();return ['image/jpeg','image/png','image/webp','image/gif'].includes(type)||(!type||type==='application/octet-stream')&&/\.(jpe?g|png|webp|gif)$/i.test(file.name||'');}
+function addPhotoFiles(files){
+ if(!editDialog.open)return 0;if(document.getElementById('saveModel').disabled){photoMessage('Wacht tot het opslaan klaar is voordat je foto’s toevoegt.',true);return 0;}
+ const added=[],problems=[];let bytes=photoItems.reduce((sum,item)=>sum+(item.file?.size||0),0);
+ for(const file of Array.from(files||[])){const name=file.name||'Afbeelding';if(!supportedPhoto(file)){problems.push(name+': gebruik JPG, PNG, WebP of GIF');continue;}if(!file.size||file.size>15*1024*1024){problems.push(name+': leeg of groter dan 15 MB');continue;}if(photoItems.length+added.length>=20){problems.push(name+': maximaal 20 foto’s');continue;}if(bytes+file.size>75*1024*1024){problems.push(name+': maximaal 75 MB aan nieuwe foto’s per model');continue;}added.push({file,preview:URL.createObjectURL(file)});bytes+=file.size;}
+ photoItems.push(...added);if(added.length){previewPhotoItem=added[0];renderPhotoQueue();document.getElementById('photoPreview').scrollIntoView({block:'nearest'});}
+ photoMessage((added.length?added.length+' foto'+(added.length===1?'':'’s')+' toegevoegd. ':'')+(problems.length?'Overgeslagen: '+problems.join('; '):added.length?'Nog niet opgeslagen; klik Model opslaan.':'Geen afbeeldingsbestanden ontvangen.'),!!problems.length);
+ return added.length;
 }
 function startEdit(record=null){
  if(!requireApp())return;
@@ -486,12 +511,24 @@ document.getElementById('editModel').addEventListener('click',()=>startEdit(acti
 document.getElementById('closeEdit').addEventListener('click',()=>{if(!document.getElementById('saveModel').disabled)editDialog.close();});
 editDialog.addEventListener('cancel',event=>{if(document.getElementById('saveModel').disabled)event.preventDefault();});
 editDialog.addEventListener('close',clearPhotoItems);
-document.getElementById('photoUpload').addEventListener('change',event=>{
- const files=[...event.target.files],status=document.getElementById('saveStatus');
- if(photoItems.length+files.length>20){status.textContent='Je kunt maximaal 20 foto’s bewaren.';status.className='formerror';event.target.value='';return;}
- if(files.some(file=>file.size>15*1024*1024||!['image/jpeg','image/png','image/webp','image/gif'].includes(file.type))){status.textContent='Gebruik JPG, PNG, WebP of GIF van maximaal 15 MB per foto.';status.className='formerror';event.target.value='';return;}
- photoItems.push(...files.map(file=>({file,preview:URL.createObjectURL(file)})));event.target.value='';status.textContent='';renderPhotoQueue();
-});
+document.getElementById('choosePhotoFiles').addEventListener('click',()=>document.getElementById('photoUpload').click());
+document.getElementById('photoUpload').addEventListener('change',event=>{addPhotoFiles(event.target.files);event.target.value='';});
+const photoDropZone=document.getElementById('photoDropZone');
+function draggingFiles(event){return Array.from(event.dataTransfer?.types||[]).includes('Files')||!!event.dataTransfer?.files?.length;}
+editDialog.addEventListener('dragenter',event=>{if(!draggingFiles(event))return;event.preventDefault();photoDragDepth++;photoDropZone.classList.add('dragging');});
+editDialog.addEventListener('dragleave',event=>{if(photoDragDepth>0&&--photoDragDepth===0)resetPhotoDrag();});
+editDialog.addEventListener('dragover',event=>{if(!draggingFiles(event))return;event.preventDefault();event.dataTransfer.dropEffect=document.getElementById('saveModel').disabled?'none':'copy';});
+editDialog.addEventListener('drop',event=>{if(!draggingFiles(event))return;event.preventDefault();event.stopPropagation();resetPhotoDrag();addPhotoFiles(event.dataTransfer.files);});
+photoDropZone.addEventListener('keydown',event=>{if(event.target===photoDropZone&&(event.key==='Enter'||event.key===' ')){event.preventDefault();document.getElementById('photoUpload').click();}});
+// Voorkom dat een losgelaten bestand de inventarispagina vervangt, ook naast het formulier.
+for(const name of ['dragover','drop'])document.addEventListener(name,event=>{if(!editDialog.open||!draggingFiles(event))return;event.preventDefault();if(name==='drop'){resetPhotoDrag();photoMessage('Laat de foto’s los binnen het modelformulier.',true);}});
+document.addEventListener('dragend',resetPhotoDrag);
+// Alleen afbeeldingen onderscheppen; gewone tekst blijft normaal plakken in de invoervelden.
+document.addEventListener('paste',event=>{if(!editDialog.open)return;let files=Array.from(event.clipboardData?.items||[]).filter(item=>item.kind==='file').map(item=>item.getAsFile()).filter(file=>file&&(file.type?.startsWith('image/')||supportedPhoto(file)));if(!files.length)files=Array.from(event.clipboardData?.files||[]).filter(supportedPhoto);if(!files.length)return;event.preventDefault();addPhotoFiles(files);});
+document.getElementById('previousPhoto').addEventListener('click',()=>{const index=photoItems.indexOf(previewPhotoItem);if(index>0){previewPhotoItem=photoItems[index-1];renderPhotoQueue();}});
+document.getElementById('nextPhoto').addEventListener('click',()=>{const index=photoItems.indexOf(previewPhotoItem);if(index>=0&&index<photoItems.length-1){previewPhotoItem=photoItems[index+1];renderPhotoQueue();}});
+document.getElementById('previewAsMain').addEventListener('click',()=>{if(document.getElementById('saveModel').disabled)return;const index=photoItems.indexOf(previewPhotoItem);if(index>0){photoItems.splice(index,1);photoItems.unshift(previewPhotoItem);renderPhotoQueue();}});
+document.getElementById('closePhotoPreview').addEventListener('click',()=>{previewPhotoItem=null;renderPhotoQueue();});
 async function appPost(path,body){
  const response=await fetch(path,{method:'POST',headers:{'X-Inventaris-Token':appConfig.token,'X-Inventaris-Revision':appConfig.revision,...(typeof body==='string'?{'Content-Type':'application/json'}:{})},body});
  const result=await response.json();if(!response.ok){const error=Error(result.error||'Opslaan is niet gelukt.');error.duplicates=result.duplicates;throw error;}return result;
