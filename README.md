@@ -12,6 +12,7 @@ De bron is een Excel-bestand (`Inventaris.xlsx`, werkblad **Inventaris**). Dat b
 - [Waar staat wat](#waar-staat-wat)
 - [Installatie](#installatie)
 - [Functies](#functies)
+- [Meerdere modellen tegelijk aanpassen](#meerdere-modellen-tegelijk-aanpassen)
 - [Modellen toevoegen, bewerken en verwijderen](#modellen-toevoegen-bewerken-en-verwijderen)
 - [Afspraken met kopers en kalender](#afspraken-met-kopers-en-kalender)
 - [Foto's en zoekertjes](#fotos-en-zoekertjes)
@@ -170,6 +171,22 @@ Toevoegen/verwijderen beheer je via de prullenbak, samenhangende bundelwijziging
 De geschiedenis staat samen met bundels in `data/lokale_modellen.json` en blijft behouden na een herstart of Excel-update. Er wordt geen geschiedenis van vóór deze functie verzonnen. Volledige back-upherstelpunten zetten ook de geschiedenis terug naar dat moment; de versie van vóór het terugzetten blijft in het vooraf gemaakte herstelpunt staan.
 
 De volledige ZIP-export bevat ook `verkoopbundels.json` en `wijzigingsgeschiedenis.json`. In de Parquet-export staan per model de bundel-ID, bundelnaam en geschiedenis. Bundeltotalen staan afzonderlijk in de bundelgegevens; tel ze niet per model op.
+
+## Meerdere modellen tegelijk aanpassen
+
+1. Start de app en klik bovenaan op **Meerdere aanpassen**.
+2. Vink modellen aan in het foto-overzicht, de tabel of de locatielijst. Met **Selecteer alle resultaten** voeg je alle huidige zoek-/filterresultaten toe aan je selectie.
+3. Klik **Selectie aanpassen**. Kies per veld **Niet wijzigen**, **Vervangen door** of **Leegmaken**.
+4. Klik **Wijzigingen bekijken** om per model de huidige en nieuwe waarden te controleren.
+5. Bevestig met de groene knop om alle gecontroleerde wijzigingen samen op te slaan.
+
+Je kunt locatie, conditie, schaal, doos, de drie vraagprijzen en status aanpassen. Niet gekozen velden, foto's, zoekertjesteksten, opmerkingen en afspraken blijven behouden. **Leegmaken** zet een veld expliciet op *Onbekend*; het is iets anders dan *Niet wijzigen*.
+
+De selectie blijft bestaan wanneer je zoekt, filtert, sorteert of tussen weergaven wisselt. De balk vermeldt hoeveel geselecteerde modellen buiten de huidige filters vallen. Ook die modellen worden meegenomen en staan in het controlevenster. **Selectie wissen** of **Selectiemodus sluiten** maakt de selectie leeg. Een paginavernieuwing bewaart de selectie niet.
+
+Bij **Verkocht** kies je één verkoopdatum en vul je de werkelijke prijs per model in (mag onbekend blijven). Voor een gezamenlijke totaalprijs gebruik je een verkoopbundel. Statuswijzigingen bij modellen die in een actieve bundel zitten worden geblokkeerd; hun locatie of conditie kun je wel samen aanpassen.
+
+De hele selectie wordt vooraf gecontroleerd. Bij een ongeldig of gewijzigd model, een ongeldige prijs of een bundelconflict wordt **niets** opgeslagen. Een gewijzigd formulier vereist opnieuw een voorvertoning. Vóór opslaan wordt één herstelpunt gemaakt en per gewijzigd model komt een regel in de wijzigingsgeschiedenis. Excel wordt niet gewijzigd; lokale aanpassingen blijven na opnieuw inlezen behouden. Modellen waarbij de gekozen waarden al kloppen worden niet onnodig opgeslagen.
 
 ## Modellen toevoegen, bewerken en verwijderen
 

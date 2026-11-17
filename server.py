@@ -428,6 +428,81 @@ def undo_history(directory, metadata):
     return key
 
 
+def bulk_models(directory, metadata, *, preview=False):
+    """Bereid de hele selectie voor; één fout betekent dat geen enkel model wordt opgeslagen."""
+    if not isinstance(metadata, dict):
+        raise ValueError('Ongeldige selectie.')
+    members, fields = metadata.get('members'), metadata.get('fields')
+    if not isinstance(members, list) or not 1 <= len(members) <= 1000:
+        raise ValueError('Selecteer tussen 1 en 1000 modellen.')
+    allowed = {6, 7, 9, 10, 11, 12, 13, 14}
+    if not isinstance(fields, dict) or not fields:
+        raise ValueError('Kies minstens één veld om aan te passen.')
+    prepared = {}
+    for key, raw in fields.items():
+        if key not in {str(i) for i in allowed}:
+            raise ValueError('Dit veld kan niet voor meerdere modellen tegelijk worden aangepast.')
+        index = int(key)
+        value = 'Onbekend' if raw is None else text(raw) or 'Onbekend'
+        if 11 <= index <= 13 and value != 'Onbekend':
+            try:
+                value = float(value.replace(',', '.'))
+            except ValueError as exc:
+                raise ValueError('Vul een geldige vraagprijs in.') from exc
+            if not math.isfinite(value) or value < 0:
+                raise ValueError('Vraagprijzen moeten nul of hoger zijn.')
+        if index == 14:
+            choices = {v.casefold(): v for v in ('Nog te plaatsen', 'Online', 'Gereserveerd', 'Verkocht', 'Onbekend')}
+            if value.casefold() not in choices:
+                raise ValueError('Kies een geldige status.')
+            value = choices[value.casefold()]
+        prepared[index] = value
+    sale_prices = metadata.get('salePrices', {})
+    if not isinstance(sale_prices, dict):
+        raise ValueError('Ongeldige verkoopprijzen.')
+    local = bijwerken.load_local(directory)
+    before_local = copy.deepcopy(local)
+    data = bijwerken.merge_local(bijwerken.snapshot(directory), copy.deepcopy(local))
+    by_id = {str(r['values'][0]): r for r in data['records']}
+    seen, rows = set(), []
+    for member in members:
+        if not isinstance(member, dict):
+            raise ValueError('Ongeldige modelselectie.')
+        key = text(member.get('id', ''), 100)
+        record = by_id.get(key)
+        if key in seen or not record or member.get('identity') != record['values'][1:6]:
+            raise ValueError('Een model is dubbel geselecteerd, ontbreekt of is gewijzigd. Vernieuw de pagina.')
+        seen.add(key)
+        if 14 in prepared and record.get('bundle'):
+            raise ValueError('Model ' + key + ' hoort bij een verkoopbundel. Pas de status via die bundel aan of haal het model uit deze selectie.')
+        values = record['values'][:]
+        changes = []
+        for index, value in prepared.items():
+            if str(value) == str(values[index]):
+                value = values[index]
+            if values[index] != value:
+                changes.append({'field': str(index), 'label': bijwerken.HEADERS[index], 'before': values[index], 'after': value})
+                values[index] = value
+        beheer.put_fields(local, record, values)
+        if prepared.get(14) == 'Verkocht':
+            baseline = record.get('originalValues', record['values'])[:]
+            baseline[14] = 'Verkocht'
+            save_sale(local, key, baseline, record['origin'], {'sale': {'price': sale_prices.get(key), 'date': metadata.get('saleDate', '')}})
+            sale = local['sales'][key]
+            for field, label in (('price', 'Werkelijke verkoopprijs'), ('date', 'Verkoopdatum')):
+                old = record.get('sale', {}).get(field)
+                if old != sale[field]:
+                    changes.append({'field': 'sale.' + field, 'label': label, 'before': old, 'after': sale[field]})
+        if changes:
+            rows.append({'id': key, 'title': str(values[1]) + ' ' + str(values[2]), 'changes': changes})
+    if set(sale_prices) - seen:
+        raise ValueError('Een verkoopprijs hoort niet bij de selectie.')
+    result = {'selected': len(seen), 'updated': len(rows), 'rows': rows}
+    if not preview and rows:
+        commit_local(directory, local, data, before_local, 'Meerdere modellen aangepast')
+    return result
+
+
 class Handler(BaseHTTPRequestHandler):
     def send_json(self, status, value):
         self.send_bytes(status, json.dumps(value, ensure_ascii=False).encode('utf-8'), 'application/json; charset=utf-8')
@@ -456,7 +531,7 @@ class Handler(BaseHTTPRequestHandler):
         directory = self.server.directory
         if route == '/api/config':
             with LOCK:
-                self.send_json(200, {'token': self.server.token, 'revision': revision(directory), 'version': 3})
+                self.send_json(200, {'token': self.server.token, 'revision': revision(directory), 'version': 4})
             return
         if route == '/api/history':
             from urllib.parse import parse_qs
@@ -535,6 +610,10 @@ class Handler(BaseHTTPRequestHandler):
                     metadata = json.loads(raw.decode('utf-8'))
                     key = save_status(self.server.directory, metadata)
                     self.send_json(200, {'ok': True, 'id': key})
+                elif route in ('/api/bulk', '/api/bulk/preview'):
+                    metadata = json.loads(raw.decode('utf-8'))
+                    result = bulk_models(self.server.directory, metadata, preview=route.endswith('/preview'))
+                    self.send_json(200, {'ok': True, **result})
                 elif route in ('/api/bundles', '/api/history/undo'):
                     metadata = json.loads(raw.decode('utf-8'))
                     if not isinstance(metadata, dict):

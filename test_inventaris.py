@@ -570,6 +570,104 @@ class InventoryTests(unittest.TestCase):
             self.assertTrue(all(r['Bundel ID'] == key and r['Verkoopprijs'] is None for r in rows))
             self.assertTrue(all(json.loads(r['Wijzigingsgeschiedenis']) for r in rows))
 
+    def bulk_payload(self, records, fields, **extra):
+        return {'members': [{'id': str(r['values'][0]), 'identity': r['values'][1:6]} for r in records], 'fields': fields, **extra}
+
+    def test_bulk_preview_then_single_commit_preserves_media_and_logs_each_model(self):
+        self.assertEqual(self.post(self.metadata())[0], 200)
+        records = b.snapshot(self.directory)['records']
+        original = {str(r['values'][0]): r for r in records}
+        source_hash = hashlib.sha256(self.source.read_bytes()).hexdigest()
+        before_local = (self.directory / b.LOCAL_FILE).read_bytes()
+        before_backups = len(collectie.list_backups(self.directory))
+        payload = self.bulk_payload(records, {'9': 'Doos B', '6': 'Goed', '11': '50,25'})
+        code, preview = self.json_post('/api/bulk/preview', payload)
+        self.assertEqual(code, 200, preview)
+        self.assertEqual(preview['updated'], 2)
+        self.assertEqual((self.directory / b.LOCAL_FILE).read_bytes(), before_local)
+        self.assertEqual(len(collectie.list_backups(self.directory)), before_backups)
+        code, result = self.json_post('/api/bulk', payload)
+        self.assertEqual(code, 200, result)
+        self.assertEqual(result['updated'], 2)
+        self.assertEqual(len(collectie.list_backups(self.directory)), before_backups + 1)
+        local = b.load_local(self.directory)
+        for record in b.snapshot(self.directory)['records']:
+            key = str(record['values'][0])
+            self.assertEqual(record['values'][9], 'Doos B')
+            self.assertEqual(record['values'][6], 'Goed')
+            self.assertEqual(record['values'][11], 50.25)
+            self.assertEqual(record.get('extra'), original[key].get('extra'))
+            self.assertEqual(record['note'], original[key]['note'])
+            self.assertEqual(local['history'][key][-1]['action'], 'Meerdere modellen aangepast')
+        self.assertEqual(hashlib.sha256(self.source.read_bytes()).hexdigest(), source_hash)
+        b.main(self.directory)
+        self.assertTrue(all(r['values'][9] == 'Doos B' for r in b.snapshot(self.directory)['records']))
+
+    def test_bulk_invalid_member_or_field_leaves_everything_unchanged(self):
+        self.assertEqual(self.post(self.metadata())[0], 200)
+        records = b.snapshot(self.directory)['records']
+        before = (self.directory / b.LOCAL_FILE).read_bytes()
+        backups = len(collectie.list_backups(self.directory))
+        invalid = self.bulk_payload(records, {'9': 'Nieuwe doos'})
+        invalid['members'][-1]['identity'] = ['Gewijzigd']
+        self.assertEqual(self.json_post('/api/bulk', invalid)[0], 400)
+        for fields in ({'0': 'ander nummer'}, {'1': 'Ander merk'}, {'11': '-1'}, {'11': 'NaN'}, {'14': 'Ongeldig'}, {}):
+            self.assertEqual(self.json_post('/api/bulk', self.bulk_payload(records, fields))[0], 400)
+        self.assertEqual(self.json_post('/api/bulk', self.bulk_payload([], {'9': 'Doos'}))[0], 400)
+        duplicate = self.bulk_payload(records + records[:1], {'9': 'Doos'})
+        self.assertEqual(self.json_post('/api/bulk', duplicate)[0], 400)
+        self.assertEqual((self.directory / b.LOCAL_FILE).read_bytes(), before)
+        self.assertEqual(len(collectie.list_backups(self.directory)), backups)
+
+    def test_bulk_bundle_status_guard_and_location_change(self):
+        self.assertEqual(self.post(self.metadata())[0], 200)
+        records = b.snapshot(self.directory)['records']
+        key = self.make_bundle(records)[1]['id']
+        records = b.snapshot(self.directory)['records']
+        before = (self.directory / b.LOCAL_FILE).read_bytes()
+        self.assertEqual(self.json_post('/api/bulk', self.bulk_payload(records, {'9': 'Kast C', '14': 'Online'}))[0], 400)
+        self.assertEqual((self.directory / b.LOCAL_FILE).read_bytes(), before)
+        self.assertEqual(self.json_post('/api/bulk', self.bulk_payload(records, {'9': 'Kast C'}))[0], 200)
+        self.assertTrue(all(r['values'][9] == 'Kast C' and r['bundle']['id'] == key and r['values'][14] == 'Gereserveerd' for r in b.snapshot(self.directory)['records']))
+
+    def test_bulk_clear_noop_and_selective_history_undo(self):
+        self.assertEqual(self.post(self.metadata())[0], 200)
+        records = b.snapshot(self.directory)['records']
+        self.assertEqual(self.json_post('/api/bulk', self.bulk_payload(records, {'9': 'Kast D'}))[0], 200)
+        records = b.snapshot(self.directory)['records']
+        local = b.load_local(self.directory)
+        event = local['history']['1'][-1]
+        before = (self.directory / b.LOCAL_FILE).read_bytes()
+        backups = len(collectie.list_backups(self.directory))
+        code, result = self.json_post('/api/bulk', self.bulk_payload(records, {'9': 'Kast D'}))
+        self.assertEqual(code, 200)
+        self.assertEqual(result['updated'], 0)
+        self.assertEqual((self.directory / b.LOCAL_FILE).read_bytes(), before)
+        self.assertEqual(len(collectie.list_backups(self.directory)), backups)
+        self.assertEqual(self.json_post('/api/history/undo', {'id': '1', 'eventId': event['id']})[0], 200)
+        records = b.snapshot(self.directory)['records']
+        self.assertEqual(records[0]['values'][9], 'Onbekend')
+        self.assertEqual(records[1]['values'][9], 'Kast D')
+        self.assertEqual(self.json_post('/api/bulk', self.bulk_payload(records, {'9': None, '11': None}))[0], 200)
+        self.assertTrue(all(r['values'][9] == 'Onbekend' and r['values'][11] == 'Onbekend' for r in b.snapshot(self.directory)['records']))
+
+    def test_bulk_sold_has_per_model_prices_and_one_date(self):
+        self.assertEqual(self.post(self.metadata())[0], 200)
+        records = b.snapshot(self.directory)['records']
+        payload = self.bulk_payload(records, {'14': 'Verkocht'}, saleDate='2026-11-17', salePrices={str(records[0]['values'][0]): '0', str(records[1]['values'][0]): '65,50'})
+        code, preview = self.json_post('/api/bulk/preview', payload)
+        self.assertEqual(code, 200, preview)
+        self.assertEqual(preview['updated'], 2)
+        self.assertTrue(all(any(c['field'] == 'sale.date' for c in r['changes']) for r in preview['rows']))
+        self.assertEqual(self.json_post('/api/bulk', payload)[0], 200)
+        saved = b.snapshot(self.directory)['records']
+        self.assertEqual([r['sale']['price'] for r in saved], [0, 65.5])
+        self.assertTrue(all(r['values'][14] == 'Verkocht' and r['sale']['date'] == '2026-11-17' for r in saved))
+        before = (self.directory / b.LOCAL_FILE).read_bytes()
+        payload['salePrices'][str(records[1]['values'][0])] = '-10'
+        self.assertEqual(self.json_post('/api/bulk', payload)[0], 400)
+        self.assertEqual((self.directory / b.LOCAL_FILE).read_bytes(), before)
+
 
 if __name__ == '__main__':
     unittest.main()

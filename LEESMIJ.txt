@@ -221,3 +221,17 @@ om die groter te bekijken; blader met de pijlen of kies Als hoofdfoto.
 Bewaren gebeurt pas bij Model opslaan.
 Maximaal 20 foto's, 15 MB per foto en 75 MB aan nieuwe foto's per model.
 Te grote of ongeschikte bestanden worden overgeslagen met een melding.
+
+MEERDERE MODELLEN TEGELIJK AANPASSEN
+Klik bovenaan Meerdere aanpassen en vink modellen aan in het foto-overzicht,
+de tabel of de locatielijst. Selecteer alle resultaten voegt de huidige
+zoek-/filterresultaten toe. Een selectie blijft bestaan als je filters wijzigt;
+de balk meldt hoeveel geselecteerde modellen dan buiten beeld staan.
+Via Selectie aanpassen kies je per veld: Niet wijzigen, Vervangen of Leegmaken.
+Locatie, conditie, schaal, doos, vraagprijzen en status zijn beschikbaar.
+Klik Wijzigingen bekijken, controleer de huidige/nieuwe waarden en bevestig.
+Alleen de gekozen velden veranderen. Bij één fout wordt niets opgeslagen.
+Voor losse verkopen vul je één datum en een werkelijke prijs per model in.
+Bundelstatussen beheer je via de bundel; andere velden kunnen wel gezamenlijk.
+Er wordt één herstelpunt gemaakt en per gewijzigd model geschiedenis bewaard.
+Excel blijft ongewijzigd. Vernieuwen of de selectiemodus sluiten wist de selectie.
